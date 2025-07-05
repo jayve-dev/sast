@@ -1,9 +1,10 @@
+import { SignInForm } from '@/components/ui/auth/SignInForm'
 import React from 'react'
 
 export default function SignIn() {
   return (
-    <div>
-      Sign In
-    </div>
+    <main>
+      <SignInForm />
+    </main>
   )
 }
