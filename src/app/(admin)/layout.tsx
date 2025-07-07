@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
+import { SideBar } from "@/components/side-bar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,7 +22,10 @@ export default function AuthLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen`}
       >
-        {children}
+        <div className="w-full h-dvh flex flex-row items-center justify-between p-5 bg-[#2A4759] text-[#EEEEEE]">
+          <SideBar />
+          {children}
+        </div>
       </body>
     </html>
   );
