@@ -22,7 +22,7 @@ export default function AuthLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen`}
       >
-        <div className="w-full h-dvh flex flex-row items-center justify-between p-5 bg-[#2A4759] text-[#EEEEEE]">
+        <div className="w-full h-dvh flex flex-row items-center justify-center p-5 bg-[#2A4759] text-[#EEEEEE]">
           <SideBar />
           {children}
         </div>
