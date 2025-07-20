@@ -36,12 +36,12 @@ const SideBar = () => {
       <div
         className={`relative w-auto h-full ${
           isOpen
-            ? "bg-[#f79b72] max-h-[500px] p-5 rounded-lg shadow-lg shadow-[#0A0A0A]/50 transition-all duration-400"
+            ? "bg-[#f79b72] max-h-[500px] px-9 p-5 rounded-lg shadow-lg shadow-[#0A0A0A]/50 transition-all duration-400"
             : "bg-transparent transition-all duration-400 max-h-[500px]" 
         }`}
       >
         <button
-          className='absolute border-8 border-[#2A4759] rounded-full p-3 h-16 w-16 flex items-center justify-center bg-[#f79b72] z-10 -left-9 bottom-1/2'
+          className='absolute border-8 border-[#2A4759] rounded-full p-3 h-16 w-16 flex items-center justify-center bg-[#f79b72] z-10 -left-9 bottom-[225px] hover:scale-105 transition-transform duration-200 '
           onClick={() => setIsOpen(!isOpen)}
         >
           {isOpen ? <FaArrowRightFromBracket className="-rotate-180 transform transition-transform duration-500" /> : <FaArrowRightFromBracket className="transform transition-transform duration-500"/>}
@@ -52,6 +52,9 @@ const SideBar = () => {
               <div className='flex flex-col items-center justify-center gap-7 w-full'>
                 <NavbarItem href='/dashboard'>Home</NavbarItem>
                 <NavbarItem href='/questionnaire'>Questionnaire</NavbarItem>
+                <NavbarItem href='/instructors'>Instructors</NavbarItem>
+                <NavbarItem href='/students'>Students</NavbarItem>
+                <NavbarItem href='/reports'>Reports</NavbarItem>
               </div>
               <div className="w-full">
                 <NavbarItem href='/ambot'>Log out</NavbarItem>

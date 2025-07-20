@@ -33,9 +33,9 @@ const NavBar = () => {
   return (
     <>
       <div
-        className={`sm:hidden absolute w-auto h-fit bg-[#f79b72] p-5 rounded-lg shadow-lg shadow-[#0A0A0A]/50 transition-all duration-400 z-10 left-6 -bottom-[245px]`}
+        className={`sm:hidden absolute w-auto h-fit bg-[#f79b72] pl-12 p-5 rounded-lg shadow-lg shadow-[#0A0A0A]/50 transition-all duration-400 z-10 left-6 -bottom-[475px]`}
       >
-        <div className='w-full h-full flex flex-col items-center justify-between gap-4'>
+        <div className='w-full h-full flex flex-col items-center justify-between gap-8'>
           {/* search */}
           <div className='relative sm:hidden w-fit h-fit hover:scale-105 transition-transform duration-200'>
             <Input placeholder='Search...' />
@@ -46,8 +46,11 @@ const NavBar = () => {
           <div className='flex flex-col items-center justify-center gap-7 w-full'>
             <NavbarItem href='/dashboard'>Home</NavbarItem>
             <NavbarItem href='/questionnaire'>Questionnaire</NavbarItem>
+            <NavbarItem href='/instructors'>Instructors</NavbarItem>
+            <NavbarItem href='/students'>Students</NavbarItem>
+            <NavbarItem href='/reports'>Reports</NavbarItem>
           </div>
-          <div className='w-full'>
+          <div className='w-full mt-8'>
             <NavbarItem href='/ambot'>Log out</NavbarItem>
           </div>
         </div>

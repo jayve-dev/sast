@@ -5,12 +5,15 @@ import { IoSearch } from "react-icons/io5";
 import Image from "next/image";
 import { NavBar } from "./nav-bar";
 import { FaHamburger } from "react-icons/fa";
+import { RoleLabel } from "./role-label";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className='relative w-full h-16 flex items-center justify-between sm:px-5 rounded-3xl bg-transparent'>
+      
+      {/* mobile view */}
       <button
         className='sm:hidden rounded-full p-3 h-fit w-fit flex items-center justify-center border-8 border-[#2A4759] z-20 bg-[#2A4759] -ml-3'
         onClick={() => setIsOpen(!isOpen)}
@@ -24,8 +27,9 @@ const Header = () => {
 
       {isOpen && <NavBar />}
 
+      {/* desktop view */}
       {/* search */}
-      <div className='relative hidden sm:flex w-fit h-fit hover:scale-105 transition-transform duration-200'>
+      <div className='relative hidden sm:flex w-fit h-fit hover:scale-105 transition-transform duration-200 bg-[#FAF9F6] rounded-lg'>
         <Input placeholder='Search...' />
         <button className='absolute right-3 top-1/2 transform -translate-y-1/2 text-black bg-trasnsparent w-fit h-fit p-1 hover:scale-110 transition-transform duration-200'>
           <IoSearch className='w-5 h-5' />
@@ -33,7 +37,8 @@ const Header = () => {
       </div>
 
       {/* logo/profile(dependes sabot) */}
-      <div>
+      <div className="flex items-center justify-center gap-3">
+        <RoleLabel />
         <Image
           width={0}
           height={0}
