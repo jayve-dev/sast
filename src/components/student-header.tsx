@@ -1,11 +1,11 @@
-import React from "react";
-import { SelectCard } from "@/components/ui/select-card";
-import { Input } from "./ui/input";
-import { IoSearch } from "react-icons/io5";
-import { Button } from "./ui/button";
-import { InstructorAdd } from "./instructor-add";
+import React from 'react'
+import { SelectCard } from './ui/select-card';
+import { Input } from './ui/input';
+import { IoSearch } from 'react-icons/io5';
+import { Button } from './ui/button';
+import { StudentAdd } from './student-add';
 
-const IHeader = () => {
+const StudentHeader = () => {
   return (
     <div className='w-full h-16 flex items-center px-2 gap-10'>
       <div className='relative flex w-full max-w-80 h-fit hover:scale-105 transition-transform duration-200 bg-[#FAF9F6] rounded-lg'>
@@ -16,28 +16,29 @@ const IHeader = () => {
       </div>
 
       <SelectCard
-        placeholder='Select a question'
+        placeholder='Year Level'
         options={[
-          { value: "question1", label: "Question 1" },
-          { value: "question2", label: "Question 2" },
-          { value: "question3", label: "Question 3" },
+          { value: "freshman", label: "Freshman" },
+          { value: "sophomore", label: "Sophomore" },
+          { value: "junior", label: "Junior" },
+          { value: "senior", label: "Senior" },
         ]}
       />
 
       <SelectCard
-        placeholder='Select a question'
+        placeholder='Section'
         options={[
-          { value: "question1", label: "Question 1" },
-          { value: "question2", label: "Question 2" },
-          { value: "question3", label: "Question 3" },
+          { value: "section1", label: "Section 1" },
+          { value: "section2", label: "Section 2" },
+          { value: "section3", label: "Section 3" },
         ]}
       />
 
         <Button className='bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 hover:scale-105'>
-            <InstructorAdd />
+            <StudentAdd />
         </Button>
     </div>
-  );
-};
+  )
+}
 
-export { IHeader };
+export { StudentHeader };
