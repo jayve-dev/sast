@@ -1,12 +1,19 @@
 import * as z from 'zod';
 
 export const SignUpSchema = z.object({
-    email: z.string().email({
-        message: "Please enter a valid email address"
+    number: z.string().min(7, {
+        message: "Please enter a valid ID number"
     }),
     name: z.string().min(1, {
-        message: "Please enter your name"
+        message: "Please enter your Full name"
     }),
+
+    section: z.enum(["A", "B", "C", "D", "E"]).optional(),
+
+    course: z.enum(["BSIT", "BSIE", "BSHM", "BTLED", "BEED"]).optional(),
+
+    role: z.enum(["STUDENT", "ADMIN"]).optional(),
+
     password: z.string().min(8, {
         message: "Password must be at least 8 characters long"
     }),
@@ -16,8 +23,8 @@ export const SignUpSchema = z.object({
 });
 
 export const SignInSchema = z.object({
-    email: z.string().email({
-        message: "Please enter a valid email address"
+    number: z.string().min(7, {
+        message: "Please enter a valid ID number"
     }),
     password: z.string().min(8, {
         message: "Password must be at least 8 characters long"

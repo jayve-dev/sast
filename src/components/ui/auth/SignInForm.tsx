@@ -34,17 +34,17 @@ const SignInForm = () => {
   const form = useForm({
     resolver: zodResolver(SignInSchema),
     defaultValues: {
-      email: "",
+      number: "",
       password: "",
     },
   });
 
   const onSubmit = async (data: z.infer<typeof SignInSchema>) => {
 
-    console.log("data.email", data.email)
+    console.log("data.number", data.number)
     const result = await signIn("credentials", {
       redirect: false,
-      email: data.email,    
+      number: data.number,    
       password: data.password,
       
     });
@@ -73,12 +73,12 @@ const SignInForm = () => {
           <div className="space-y-4">
             <FormField
               control={form.control}
-              name="email"
+              name="number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>ID Number</FormLabel>
                   <FormControl>
-                    <Input {...field} type="email" placeholder="jeboygwaponalang123@gmail.com" />
+                    <Input {...field} type="number" placeholder="1234567" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

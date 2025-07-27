@@ -14,11 +14,12 @@ interface CardWrapperProps {
     backButtonHref: string;
     backButtonLabel: string;
     children: React.ReactNode;
+    className?: string;
     }
 
-const CardWrapper = ({label, title, backButtonHref, backButtonLabel, children}: CardWrapperProps) => {
+const CardWrapper = ({label, title, backButtonHref, backButtonLabel, className, children}: CardWrapperProps) => {
   return (
-    <Card>
+    <Card className={className}>
         <CardHeader>
             <AuthHeader label={label} title={title}/>
         </CardHeader>

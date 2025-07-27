@@ -25,8 +25,11 @@ const SignUpForm = () => {
   const form = useForm({
     resolver: zodResolver(SignUpSchema),
     defaultValues: {
-      email: "",
+      number: "",
       name: "",
+      section: undefined,
+      course: undefined,
+      role: undefined,
       password: "",
       confirmPassword: "",
     },
@@ -54,7 +57,7 @@ const SignUpForm = () => {
 
     const signInTheUser = await signIn("credentials", {
       redirect: false,
-      email: data.email,
+      number: data.number,
       password: data.password,
       callbackUrl: "/",
     });
@@ -73,21 +76,23 @@ const SignUpForm = () => {
       title='Welcome'
       backButtonHref='/signin'
       backButtonLabel='Already have an account? Sign in'
+      className='sm:w-[500px]'
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-          <div className='space-y-4'>
+          <div className='w-full grid sm:grid-cols-2 gap-4'>
             <FormField
               control={form.control}
-              name='email'
+              name='number'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>ID Number</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
-                      type='email'
-                      placeholder='jeboygwapo123@gmail.com'
+                      type='number'
+                      placeholder='1234567'
+                      className='w-full'
                     />
                   </FormControl>
                   <FormMessage />
@@ -100,14 +105,88 @@ const SignUpForm = () => {
               name='name'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Your Name</FormLabel>
+                  <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder='Jeboy' />
+                    <Input {...field} placeholder='Jeboy Gwaponalang' />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name='section'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Section</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      className='w-full p-2 border rounded'
+                      defaultValue=''
+                    >
+                      <option value='' disabled>
+                        Select Section
+                      </option>
+                      <option value='A'>A</option>
+                      <option value='B'>B</option>
+                      <option value='C'>C</option>
+                      <option value='D'>D</option>
+                      <option value='E'>E</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='course'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Course</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      className='w-full p-2 border rounded'
+                      defaultValue=''
+                    >
+                      <option value='' disabled>
+                        Select Course
+                      </option>
+                      <option value='BSIT'>BSIT</option>
+                      <option value='BSIE'>BSIE</option>
+                      <option value='BSHM'>BSHM</option>
+                      <option value='BTLED'>BTLED</option>
+                      <option value='BEED'>BEED</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* <FormField
+              control={form.control}
+              name='role'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      className='w-full p-2 border rounded'
+                      defaultValue=''
+                    >
+                      <option value='STUDENT'>Student</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            /> */}
 
             <FormField
               control={form.control}
