@@ -18,17 +18,17 @@ export default function AuthLayout({
 }>) {
   return (
     <html lang='en'>
-      <body
+      <main
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen`}
       >
-        <div className="w-full h-dvh flex flex-col md:flex-row items-center justify-around bg-[#2A4759] gap-3 p-10">
-          <div className="hidden md:flex flex-col justify-center items-center ">
+        <div className="w-full h-dvh flex flex-col lg:flex-row items-center justify-around gap-3 p-10">
+          <div className="flex flex-col justify-center items-center ">
             <div className="text-white text-8xl">SAST</div>
-            <div className="text-white">Student Assessment Survey for Teachers</div>
+            <div className="text-white hidden lg:flex">Student Assessment Survey for Teachers</div>
           </div>
           <div className="w-full max-w-[420px]">{children}</div>
         </div>
-      </body>
+      </main>
     </html>
   );
 }

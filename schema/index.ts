@@ -1,10 +1,10 @@
 import * as z from 'zod';
 
 export const SignUpSchema = z.object({
-    number: z.string().min(7, {
+    idNumber: z.string().min(7, {
         message: "Please enter a valid ID number"
     }),
-    name: z.string().min(1, {
+    fullName: z.string().min(1, {
         message: "Please enter your Full name"
     }),
 

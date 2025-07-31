@@ -56,6 +56,7 @@ const SideBar = () => {
             <>
               <div className='flex flex-col items-center justify-center gap-7 w-full'>
                 <NavbarItem href='/dashboard'>Home</NavbarItem>
+                <NavbarItem href='/department'>Department</NavbarItem>
                 <NavbarItem href='/questionnaire'>Questionnaire</NavbarItem>
                 <NavbarItem href='/instructors'>Instructors</NavbarItem>
                 <NavbarItem href='/students'>Students</NavbarItem>

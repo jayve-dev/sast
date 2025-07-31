@@ -10,11 +10,11 @@ import {
 
 interface AddModalProps {
     title?: string;
-    description?: string;
+    children: React.ReactNode;
     triggerText?: string;
 }
 
-const AddModal = ({ title, description, triggerText }: AddModalProps) => {
+const AddModal = ({ title, children, triggerText }: AddModalProps) => {
   return (
     <Dialog>
       <DialogTrigger>{triggerText}</DialogTrigger>
@@ -22,7 +22,7 @@ const AddModal = ({ title, description, triggerText }: AddModalProps) => {
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            {description}
+            {children}
           </DialogDescription>
         </DialogHeader>
       </DialogContent>

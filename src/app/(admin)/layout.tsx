@@ -20,7 +20,7 @@ export default function AuthLayout({
 }>) {
   return (
     <html lang='en'>
-      <body
+      <main
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen`}
       >
         <div className="w-full h-dvh flex flex-row items-center justify-center p-5 bg-[#2A4759] text-[#EEEEEE]">
@@ -30,7 +30,7 @@ export default function AuthLayout({
             {children}
           </div>
         </div>
-      </body>
+      </main>
     </html>
   );
 }
