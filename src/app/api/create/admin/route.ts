@@ -63,7 +63,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error(error);
     return new Response(
-      JSON.stringify({ message: "Error creating user", error }),
+      JSON.stringify({ message: "Error creating Admin", error }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -75,7 +75,7 @@ export async function GET() {
     return NextResponse.json(users, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch the students" },
+      { message: "Failed to fetch the admins", error },
       { status: 500 }
     );
   }

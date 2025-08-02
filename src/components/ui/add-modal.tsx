@@ -11,7 +11,7 @@ DialogTrigger,
 interface AddModalProps {
 title?: string;
 children: React.ReactNode;
-triggerText?: string;
+triggerText?: React.ReactNode;
 }
 
 const AddModal = ({ title, children, triggerText }: AddModalProps) => {
