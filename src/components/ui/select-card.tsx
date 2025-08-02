@@ -16,7 +16,7 @@ const SelectCard: React.FC<SelectCardProps> = ({ placeholder, options }) => {
   return (
     <div>
       <Select>
-        <SelectTrigger className='hover:scale-105 transition-transform duration-200 bg-[#FAF9F6]'>
+        <SelectTrigger className='hover:scale-105 transition-transform duration-200 bg-[#FAF9F6] w-full '>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
