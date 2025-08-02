@@ -16,11 +16,12 @@ interface ModalProps {
     title?: string;
     description?: string;
     triggerText?: string;
+    children? : React.ReactNode;
 //     onConfirm: () => void;
 //     onCancel: () => void;
 }
 
-const Modal = ({ title, description, triggerText }: ModalProps) => {
+const Modal = ({ title, description, triggerText,children }: ModalProps) => {
   return (
     <AlertDialog>
       <AlertDialogTrigger>{triggerText}</AlertDialogTrigger>
@@ -31,7 +32,9 @@ const Modal = ({ title, description, triggerText }: ModalProps) => {
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+          <div className="space-y-2">{children}</div>
+
+          <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction>Continue</AlertDialogAction>
         </AlertDialogFooter>
