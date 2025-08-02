@@ -15,7 +15,7 @@ interface ModalProps {
     // isOpen: boolean;
     title?: string;
     description?: string;
-    triggerText?: string;
+    triggerText?: React.ReactNode;
     children? : React.ReactNode;
 //     onConfirm: () => void;
 //     onCancel: () => void;
