@@ -54,13 +54,14 @@ const SideBar = () => {
         <div className='w-full h-full flex flex-col items-center justify-between gap-4'>
           {isOpen && (
             <>
-              <div className='flex flex-col items-center justify-center gap-7 w-full'>
+              <div className='flex flex-col items-center justify-center gap-7 w-fit'>
                 <NavbarItem href='/dashboard'>Home</NavbarItem>
                 <NavbarItem href='/department'>Department</NavbarItem>
                 <NavbarItem href='/questionnaire'>Questionnaire</NavbarItem>
                 <NavbarItem href='/instructors'>Instructors</NavbarItem>
                 <NavbarItem href='/students'>Students</NavbarItem>
                 <NavbarItem href='/reports'>Reports</NavbarItem>
+                <NavbarItem href='/adminregister'>Accounts</NavbarItem>
               </div>
               <div className='w-full'>
                 <NavbarItem href=''>
