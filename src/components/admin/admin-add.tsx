@@ -1,56 +1,190 @@
-import React from "react";
-import { Modal } from "../ui/modal";
+"use client";
+import React, { useState } from "react";
+import { AddModal } from "../ui/add-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { SelectCard } from "@/components/ui/select-card";
-
-const roles = [
-  { value: "admin", label: "Admin" },
-  { value: "staff", label: "Staff" },
-];
+import { SignUpSchema } from "../../../schema";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Eye, EyeOff } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 const AdminAdd = () => {
+  const [isShowPassword, setIsShowPassword] = useState(false);
+  const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+
+  const form = useForm({
+    resolver: zodResolver(SignUpSchema),
+    defaultValues: {
+      idNumber: "",
+      fullName: "",
+      section: undefined,
+      course: undefined,
+      role: "ADMIN",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const onSubmit = async (data: z.infer<typeof SignUpSchema>) => {
+    setLoading(true);
+    console.log(data);
+    if (data.password !== data.confirmPassword) {
+      console.error("Passwords do not match.");
+      return;
+    }
+
+    // Convert idNumber to a number before sending
+    const payload = {
+      ...data,
+      idNumber: Number(data.idNumber),
+    };
+
+    // Remove confirmPassword before sending to backend
+    // delete payload.confirmPassword;
+
+    const response = await fetch("/api/create/admin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const resData = await response.json();
+    if (!response.ok) {
+      console.error("Error creating account:", resData.message);
+      setLoading(false);
+      return;
+    }
+    setLoading(false);
+    console.log("Account created successfully:", resData);
+    form.reset();
+    alert("Account created successfully!");
+  };
+
   return (
     <div>
-      <Modal
+      <AddModal
         title='Create Account'
-        description='Add a new admin account to the system. Please fill in the required details below.'
         triggerText={<Button variant='secondary'>Add Admin</Button>}
       >
-        <div className={"grid grid-cols-2 gap-4 p-2 "}>
-          <div className='grid w-full max-w-sm items-center gap-3 mb-2'>
-            <Label htmlFor='facultyIdNumber'>Faculty ID</Label>
-            <Input
-              type='number'
-              id='facultyIdNumber'
-              placeholder='Add the teacher biatch'
-            />
-          </div>
-          <div className='grid w-full max-w-sm items-center gap-3  mb-2'>
-            <Label htmlFor='facultyName'>Faculty Name</Label>
-            <Input type='text' id='facultyName' placeholder='Email' />
-          </div>
-          <div className='grid w-full max-w-sm items-center gap-3  mb-2'>
-            <Label htmlFor='facultyEmail'>Password</Label>
-            <Input type='email' id='facultyEmail' placeholder='Password' />
-          </div>
-          <div className='grid w-full max-w-sm items-center gap-3  mb-2'>
-            <Label htmlFor='facultyPassword'>Password</Label>
-            <Input
-              type='password'
-              id='facultyPassword'
-              placeholder='Password'
-            />
-          </div>
-          {/*<div className={'col-span-2'}>*/}
-          <div className='grid w-full  items-center gap-3 col-span-2  mb-2'>
-            <Label htmlFor='facultyName'>Role</Label>
-            <SelectCard options={roles} placeholder={"Select a role"} />
-          </div>
-          {/*</div>*/}
-        </div>
-      </Modal>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+            <div className='w-full grid sm:grid-cols-2 gap-4'>
+              <FormField
+                control={form.control}
+                name='idNumber'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type='number'
+                        placeholder='1234567'
+                        className='w-full'
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='fullName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder='Jerold Elson Monleon' />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='password'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <div className='relative'>
+                        <Input
+                          {...field}
+                          type={isShowPassword ? "text" : "password"}
+                          placeholder='********'
+                        />
+                        <button
+                          className='absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-gray-700'
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setIsShowPassword(!isShowPassword);
+                          }}
+                        >
+                          {!isShowPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='confirmPassword'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <div className='relative'>
+                        <Input
+                          {...field}
+                          type={isShowConfirmPassword ? "text" : "password"}
+                          placeholder='********'
+                        />
+                        <button
+                          className='absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-gray-700'
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setIsShowConfirmPassword(!isShowConfirmPassword);
+                          }}
+                        >
+                          {!isShowConfirmPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <Button type='submit' className='w-full' disabled={isLoading}>
+              {isLoading ? "Loading..." : "ADD"}
+            </Button>
+          </form>
+        </Form>
+      </AddModal>
     </div>
   );
 };
