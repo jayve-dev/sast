@@ -24,7 +24,7 @@ export default function Students() {
     setUsers(data);
   };
 
-  fetchStudents();
+  // fetchStudents();
 
   return (
     <div className='w-full h-dvh bg-[#f79b72] rounded-2xl p-3'>

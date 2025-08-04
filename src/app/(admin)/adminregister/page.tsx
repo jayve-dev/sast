@@ -1,3 +1,5 @@
+"use client";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,52 +15,30 @@ import {
 import React from "react";
 import { AdminAdd } from "@/components/admin/admin-add";
 
-const invoices = [
-  {
-    invoice: "INV001",
-    paymentStatus: "Paid",
-    totalAmount: "$250.00",
-    paymentMethod: "Credit Card",
-  },
-  {
-    invoice: "INV002",
-    paymentStatus: "Pending",
-    totalAmount: "$150.00",
-    paymentMethod: "PayPal",
-  },
-  {
-    invoice: "INV003",
-    paymentStatus: "Unpaid",
-    totalAmount: "$350.00",
-    paymentMethod: "Bank Transfer",
-  },
-  {
-    invoice: "INV004",
-    paymentStatus: "Paid",
-    totalAmount: "$450.00",
-    paymentMethod: "Credit Card",
-  },
-  {
-    invoice: "INV005",
-    paymentStatus: "Paid",
-    totalAmount: "$550.00",
-    paymentMethod: "PayPal",
-  },
-  {
-    invoice: "INV006",
-    paymentStatus: "Pending",
-    totalAmount: "$200.00",
-    paymentMethod: "Bank Transfer",
-  },
-  {
-    invoice: "INV007",
-    paymentStatus: "Unpaid",
-    totalAmount: "$300.00",
-    paymentMethod: "Credit Card",
-  },
-];
+interface Users {
+  id: string;
+  idNumber: number;
+  fullName: string;
+  course: string;
+  section: string;
+  role: string;
+}
 
-export default function page() {
+export default function AdminPage() {
+  const [users, setUsers] = useState<Users[]>([]);
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    const response = await fetch("/api/create/admin");
+    const data = await response.json();
+    setUsers(data);
+  };
+
+  // fetchStudents();
+
   return (
     <>
       <div className='w-full min-h-screen'>
@@ -91,15 +71,12 @@ export default function page() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {invoices.map((invoice) => (
-                  <TableRow key={invoice.invoice}>
-                    <TableCell className='font-medium'>
-                      1
-                    </TableCell>
-                    <TableCell>{invoice.paymentStatus}</TableCell>
-                    <TableCell>{invoice.paymentMethod}</TableCell>
-                    <TableCell>{invoice.paymentMethod}</TableCell>
-                  </TableRow>
+                {users.filter(user => user.role === "ADMIN").map((user, idx) => (
+                  <TableRow key={user.id}>
+                    <TableCell className='font-medium'>{idx + 1}</TableCell>
+                    <TableCell>{user.idNumber}</TableCell>
+                    <TableCell>{user.fullName}</TableCell>
+                    <TableCell>Online</TableCell>                  </TableRow>
                 ))}
               </TableBody>
             </Table>
