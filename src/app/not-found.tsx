@@ -8,14 +8,14 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
-  const phoneRef = useRef<LottieRefCurrentProps>(null);
+  const notFoundImage = useRef<LottieRefCurrentProps>(null);
   const router = useRouter();
   return (
     <div>
       <div className="flex flex-col min-h-screen bg-white  ">
         <div className="w-full flex flex-col flex-1 items-center justify-center">
           <div>
-            <Lottie lottieRef={phoneRef} animationData={animationData}></Lottie>
+            <Lottie lottieRef={notFoundImage} animationData={animationData}></Lottie>
           </div>
           <div className="flex flex-col items-center justify-center gap-4 text-center p-6">
             <h2 className="text-2xl font-semibold text-foreground">
