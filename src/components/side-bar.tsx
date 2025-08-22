@@ -63,10 +63,8 @@ const SideBar = () => {
                 <NavbarItem href='/reports'>Reports</NavbarItem>
                 <NavbarItem href='/adminregister'>Accounts</NavbarItem>
               </div>
-              <div className='w-full'>
-                <NavbarItem href=''>
-                  <LogoutModal />
-                </NavbarItem>
+              <div className='shadow-lg shadow-[#0A0A0A]/50 p-2 rounded-lg w-full flex items-center justify-center hover:scale-105 transition-transform duration-200 bg-[#2A4759]'>
+                <LogoutModal />
               </div>
             </>
           )}

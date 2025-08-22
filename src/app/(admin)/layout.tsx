@@ -2,6 +2,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 import { SideBar } from "@/components/side-bar";
 import { Header } from "@/components/header";
+import { auth } from "../../../lib/auth";
+import { redirect } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,14 +15,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export default function AuthLayout({
+export default async function AuthLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  const session = await auth();
+
+  if(!session) {
+    redirect("/signin"); 
+  }
+
   return (
-    <html lang='en'>
-      <main
+    <div lang='en'>
+      <div
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen overflow-x-hidden`}
       >
         <div className="w-full h-dvh flex flex-row items-center justify-center p-5 bg-[#2A4759] text-[#EEEEEE]">
@@ -30,7 +39,7 @@ export default function AuthLayout({
             {children}
           </div>
         </div>
-      </main>
-    </html>
+      </div>
+    </div>
   );
 }

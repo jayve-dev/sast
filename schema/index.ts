@@ -23,7 +23,7 @@ export const SignUpSchema = z.object({
 });
 
 export const SignInSchema = z.object({
-    number: z.string().min(7, {
+    idNumber: z.string().min(7, {
         message: "Please enter a valid ID number"
     }),
     password: z.string().min(8, {

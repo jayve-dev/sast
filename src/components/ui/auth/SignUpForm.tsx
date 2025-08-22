@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
-// import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import {
   Form,
   FormControl,
@@ -17,10 +17,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { signIn } from "next-auth/react";
 // import { useRouter } from "next/navigation";
 
 const SignUpForm = () => {
-//   const router = useRouter();
+  const router = useRouter();
   const [isLoading, setLoading] = useState(false);
 
   const form = useForm({
@@ -63,15 +64,30 @@ const SignUpForm = () => {
     });
 
     const resData = await response.json();
+    
     if (!response.ok) {
       console.error("Error creating account:", resData.message);
       setLoading(false);
       return;
     }
+
+    const accountLogin = await signIn("credentials", {
+      redirect: false,
+      idNumber: data.idNumber,
+      password: data.password,
+    });
+
+    if(!accountLogin?.ok) {
+      console.error("Error logging in:", accountLogin.error);
+      setLoading(false);
+      return;
+    } else {
+      router.push("/dashboard");
+    }
+
     setLoading(false);
     console.log("Account created successfully:", resData);
     form.reset();
-    alert("Account created successfully!");
   };
 
   return (
