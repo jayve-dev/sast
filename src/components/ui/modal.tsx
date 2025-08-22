@@ -17,11 +17,10 @@ interface ModalProps {
     description?: string;
     triggerText?: React.ReactNode;
     children? : React.ReactNode;
-//     onConfirm: () => void;
-//     onCancel: () => void;
+    onConfirm: () => void;
 }
 
-const Modal = ({ title, description, triggerText,children }: ModalProps) => {
+const Modal = ({ title, description, triggerText, children, onConfirm }: ModalProps) => {
   return (
     <AlertDialog>
       <AlertDialogTrigger>{triggerText}</AlertDialogTrigger>
@@ -36,7 +35,7 @@ const Modal = ({ title, description, triggerText,children }: ModalProps) => {
 
           <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction>Continue</AlertDialogAction>
+          <AlertDialogAction onClick={onConfirm}>Continue</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
