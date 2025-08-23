@@ -1,13 +1,10 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { ZodError } from "zod";
+// import { ZodError } from "zod";
 import { SignInSchema } from "../schema";
 import { prisma } from "./db";
 import bcrypt from "bcryptjs";
-import { error } from "console";
-// import { PrismaAdapter } from "@auth/prisma-adapter";
-
-// const adapter = PrismaAdapter(prisma);
+// import { error } from "console";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   // adapter,
@@ -19,35 +16,35 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       },
 
       authorize: async (credentials) => {
-          const { idNumber, password } = await SignInSchema.parseAsync(
-            credentials
-          );
+        const { idNumber, password } = await SignInSchema.parseAsync(
+          credentials
+        );
 
-          const idNumberInt = parseInt(idNumber, 10);
-          if (Number.isNaN(idNumberInt)) {
-            return null;
-          }
+        const idNumberInt = parseInt(idNumber, 10);
+        if (Number.isNaN(idNumberInt)) {
+          return null;
+        }
 
-          const user = await prisma.user.findUnique({
-            where: {
-              idNumber: idNumberInt,
-            },
-          });
+        const user = await prisma.user.findUnique({
+          where: {
+            idNumber: idNumberInt,
+          },
+        });
 
-          if (!user) {
-            return null;
-          }
+        if (!user) {
+          return null;
+        }
 
-          const isValid = await bcrypt.compare(password, user.password);
+        const isValid = await bcrypt.compare(password, user.password);
 
-          if (!isValid) {
-            return null;
-          }
+        if (!isValid) {
+          return null;
+        }
 
-          if (error instanceof ZodError) {
-            console.error({ message: "Yawa ts", error });
-          }
-          
+        // if (error instanceof ZodError) {
+        //   console.error({ message: "Yawa ts", error });
+        // }
+
         return user;
       },
     }),
@@ -57,5 +54,20 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   },
   session: {
     strategy: "jwt",
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      // Copy role from token to session
+      if (session.user) {
+        session.user.role = token.role as string;
+      }
+      return session;
+    },
   },
 });
