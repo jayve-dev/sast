@@ -19,12 +19,15 @@ import {
 } from "@/components/ui/form";
 import { useEffect } from "react";
 import { SignInSchema } from "../../../../schema";
+import { useSession } from "next-auth/react";
 
 const SignInForm = () => {
   const router = useRouter();
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const { data: session } = useSession();
 
   useEffect(() => {
     setTimeout(() => {
@@ -55,7 +58,11 @@ const SignInForm = () => {
       setError("Invalid Credentials");
     } else {
       console.log("Login successful");
-      router.push("/dashboard");
+      if (session?.user?.role === "ADMIN") {
+        router.push("dashboard");
+      } else {
+        router.push("survey");
+      }
       setIsLoading(false);
     }
   };
