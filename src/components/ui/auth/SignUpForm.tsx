@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/form";
 import { z } from "zod";
 import { signIn } from "next-auth/react";
-// import { useRouter } from "next/navigation";
 
 const SignUpForm = () => {
   const router = useRouter();
@@ -64,7 +63,7 @@ const SignUpForm = () => {
     });
 
     const resData = await response.json();
-    
+
     if (!response.ok) {
       console.error("Error creating account:", resData.message);
       setLoading(false);
@@ -77,12 +76,13 @@ const SignUpForm = () => {
       password: data.password,
     });
 
-    if(!accountLogin?.ok) {
+    if (!accountLogin?.ok) {
       console.error("Error logging in:", accountLogin.error);
       setLoading(false);
       return;
     } else {
-      router.push("/dashboard");
+      router.push("/survey");
+      setLoading(false);
     }
 
     setLoading(false);
@@ -256,7 +256,7 @@ const SignUpForm = () => {
           </div>
 
           <Button type='submit' className='w-full'>
-            { isLoading ? "Loading..." : "Sign Up"}
+            {isLoading ? "Loading..." : "Sign Up"}
           </Button>
         </form>
       </Form>
