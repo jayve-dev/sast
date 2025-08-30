@@ -5,6 +5,7 @@ import { NavBar } from "./nav-bar";
 import { FaHamburger } from "react-icons/fa";
 import { RoleLabel } from "./role-label";
 import { LogoutModal } from "./logout-modal";
+import { SidebarTrigger } from "./ui/sidebar";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,9 +27,11 @@ const Header = () => {
       {isOpen && <NavBar />}
 
       {/* desktop view */}
-      {/* search */}
-      <div className='hidden sm:flex w-fit h-fit hover:scale-105 transition-transform duration-200 bg-red-500 rounded-sm px-3 py-1'>
-        <LogoutModal/>
+      <div className="flex gap-10 items-center justify-center">
+        <SidebarTrigger />
+        <div className='hidden sm:flex w-fit h-fit hover:scale-105 transition-transform duration-200 bg-red-500 rounded-sm px-3 py-1'>
+          <LogoutModal/>
+        </div>
       </div>
 
       {/* logo/profile(dependes sabot) */}

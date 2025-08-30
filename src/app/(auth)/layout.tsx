@@ -24,7 +24,6 @@ export default async function AuthLayout({
   }
 
   return (
-    <div lang='en'>
       <div
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen`}
       >
@@ -40,6 +39,5 @@ export default async function AuthLayout({
           </div>
         </SessionProvider>
       </div>
-    </div>
   );
 }
