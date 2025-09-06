@@ -44,7 +44,7 @@ export default async function AuthLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen overflow-x-hidden`}
       >
         <SessionProvider session={session}>
-          <div className='w-full h-dvh flex flex-row items-center justify-center p-5 bg-[#2A4759] text-[#EEEEEE]'>
+          <div className='w-full h-dvh flex flex-row items-center justify-center p-5 text-[#EEEEEE]'>
             {/* <SideBar /> */}
             <AppSidebar />
             <div className='w-full h-full flex flex-col items-center justify-start gap-5'>

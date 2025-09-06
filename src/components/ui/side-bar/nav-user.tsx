@@ -88,8 +88,27 @@ export function NavUser({
               </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <Link href="/users">
+                  <DropdownMenuItem>
+                    <BadgeCheck />
+                    Users
+                  </DropdownMenuItem>
+              </Link>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <Link href="/adminaccount">
+                  <DropdownMenuItem>
+                    <BadgeCheck />
+                    Admin
+                  </DropdownMenuItem>
+              </Link>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut />
+              Log out
               {/* <LogoutModal /> */}
             </DropdownMenuItem>
           </DropdownMenuContent>
