@@ -60,7 +60,7 @@ const SignInForm = () => {
       console.log("Login successful");
       if (session?.user?.role === "ADMIN") {
         router.push("dashboard");
-      } else if (session?.user?.role === "STUDENT") {
+      } else {
         router.push("survey");
       }
       setIsLoading(false);

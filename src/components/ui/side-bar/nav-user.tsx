@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { LogoutModal } from "@/components/logout-modal"
+// import { LogoutModal } from "@/components/logout-modal"
 import {
   BadgeCheck,
   ChevronsUpDown,
@@ -90,7 +90,7 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut />
-              <LogoutModal />
+              {/* <LogoutModal /> */}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

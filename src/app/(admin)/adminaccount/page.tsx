@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -54,7 +54,7 @@ export default function AdminPage() {
                         <Input placeholder='Search...' />
                     </div> */}
 
-              <Button variant={"secondary"}> Add Account </Button>
+              {/* <Button variant={"secondary"}> Add Account </Button> */}
             </div>
             {/*<Button variant={'secondary'}> Add Account </Button>*/}
             <AdminAdd />

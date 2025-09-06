@@ -1,13 +1,12 @@
 "use client";
 import React, { useState } from "react";
 import { AddModal } from "./ui/add-modal";
-import { SignUpSchema } from "../../schema";
+import { CreateStudentSchema } from "../../schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -18,29 +17,21 @@ import {
 } from "@/components/ui/form";
 
 const StudentAdd = () => {
-  const [isShowPassword, setIsShowPassword] = useState(false);
-  const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
   const [isLoading, setLoading] = useState(false);
 
   const form = useForm({
-    resolver: zodResolver(SignUpSchema),
+    resolver: zodResolver(CreateStudentSchema),
     defaultValues: {
       idNumber: "",
       fullName: "",
       section: undefined,
       course: undefined,
-      password: "",
-      confirmPassword: "",
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof SignUpSchema>) => {
+  const onSubmit = async (data: z.infer<typeof CreateStudentSchema>) => {
     setLoading(true);
-    console.log(data);
-    if (data.password !== data.confirmPassword) {
-      console.error("Passwords do not match.");
-      return;
-    }
+    // console.log(data);
 
     // Convert idNumber to a number before sending
     const payload = {
@@ -51,7 +42,7 @@ const StudentAdd = () => {
     // Remove confirmPassword before sending to backend
     // delete payload.confirmPassword;
 
-    const response = await fetch("/api/create/user", {
+    const response = await fetch("/api/create/student", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -64,9 +55,9 @@ const StudentAdd = () => {
       return;
     }
     setLoading(false);
-    console.log("Account created successfully:", resData);
+    console.log("Student created successfully:", resData);
     form.reset();
-    alert("Account created successfully!");
+    alert("Student created successfully!");
   };
 
   return (
@@ -107,34 +98,6 @@ const StudentAdd = () => {
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name='section'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Section</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className='w-full p-2 border rounded'
-                        defaultValue=''
-                      >
-                        <option value='' disabled>
-                          Select Section
-                        </option>
-                        <option value='A'>A</option>
-                        <option value='B'>B</option>
-                        <option value='C'>C</option>
-                        <option value='D'>D</option>
-                        <option value='E'>E</option>
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={form.control}
                 name='course'
@@ -161,67 +124,26 @@ const StudentAdd = () => {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
-                name='password'
+                name='section'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Section</FormLabel>
                     <FormControl>
-                      <div className='relative'>
-                        <Input
-                          {...field}
-                          type={isShowPassword ? "text" : "password"}
-                          placeholder='********'
-                        />
-                        <button
-                          className='absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-gray-700'
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setIsShowPassword(!isShowPassword);
-                          }}
-                        >
-                          {!isShowPassword ? (
-                            <EyeOff size={20} />
-                          ) : (
-                            <Eye size={20} />
-                          )}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='confirmPassword'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <div className='relative'>
-                        <Input
-                          {...field}
-                          type={isShowConfirmPassword ? "text" : "password"}
-                          placeholder='********'
-                        />
-                        <button
-                          className='absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-gray-700'
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setIsShowConfirmPassword(!isShowConfirmPassword);
-                          }}
-                        >
-                          {!isShowConfirmPassword ? (
-                            <EyeOff size={20} />
-                          ) : (
-                            <Eye size={20} />
-                          )}
-                        </button>
-                      </div>
+                      <select
+                        {...field}
+                        className='w-full p-2 border rounded'
+                        defaultValue=''
+                      >
+                        <option value='' disabled>
+                          Select Section
+                        </option>
+                        <option value='A'>A</option>
+                        <option value='B'>B</option>
+                        <option value='C'>C</option>
+                        <option value='D'>D</option>
+                      </select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

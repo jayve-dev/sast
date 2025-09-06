@@ -4,6 +4,7 @@ import { Header } from "@/components/header";
 import { auth } from "../../../lib/auth";
 import { redirect } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,10 +26,12 @@ export default async function AuthLayout({
 
   if(!session) {
     redirect("/signin"); 
+  } else if (session.user.role !== "STUDENT") {
+    redirect("/dashboard");
   }
 
   return (
-    <div lang='en'>
+    <SidebarProvider>
       <div
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen overflow-x-hidden`}
       >
@@ -41,6 +44,6 @@ export default async function AuthLayout({
           </div>
         </SessionProvider>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

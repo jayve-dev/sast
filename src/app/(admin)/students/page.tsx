@@ -8,7 +8,6 @@ interface Users {
   fullName: string;
   course: string;
   section: string;
-  role: string;
 }
 
 export default function Students() {
@@ -19,7 +18,7 @@ export default function Students() {
   }, []);
 
   const fetchStudents = async () => {
-    const response = await fetch("/api/create/user");
+    const response = await fetch("/api/create/student");
     const data = await response.json();
     setUsers(data);
   };
@@ -37,9 +36,7 @@ export default function Students() {
           <h1>Course</h1>
           <h1>Section</h1>
         </div>
-        {users
-          .filter((user) => user.role === "STUDENT")
-          .map((user) => (
+        {users.map((user) => (
             <div key={user.id} className='p-5 flex flex-row items-center justify-between border rounded-xl hover:scale-105 transition-all duration-300 mb-2'>
               <p>{user.idNumber}</p>
               <p>{user.fullName}</p>

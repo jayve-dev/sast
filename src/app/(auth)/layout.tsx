@@ -28,7 +28,7 @@ export default async function AuthLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen`}
       >
         <SessionProvider session={session}>
-          <div className='w-full h-dvh flex flex-col lg:flex-row items-center justify-around gap-3 p-10'>
+          <div className='w-full h-dvh flex flex-col lg:flex-row items-center justify-around gap-3 p-10 bg-[#2A4759]'>
             <div className='flex flex-col justify-center items-center '>
               <div className='text-white text-8xl'>SAST</div>
               <div className='text-white hidden lg:flex'>
