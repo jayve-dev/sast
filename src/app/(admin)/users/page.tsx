@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -54,7 +54,7 @@ export default function AdminPage() {
                         <Input placeholder='Search...' />
                     </div> */}
 
-              <Button variant={"secondary"}> Add Account </Button>
+              {/* <Button variant={"secondary"}> Add Account </Button> */}
             </div>
             {/*<Button variant={'secondary'}> Add Account </Button>*/}
             <AdminAdd />
@@ -71,7 +71,7 @@ export default function AdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.filter(user => user.role === "ADMIN").map((user, idx) => (
+                {users.filter(user => user.role === "STUDENT").map((user, idx) => (
                   <TableRow key={user.id}>
                     <TableCell className='font-medium'>{idx + 1}</TableCell>
                     <TableCell>{user.idNumber}</TableCell>

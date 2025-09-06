@@ -8,28 +8,74 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(uuid())
-  idNumber  Int      @unique
-  fullName  String
-  password  String
-  role      Role     @default(STUDENT)
-  course    Course?
-  section   Section?
-  createdAt DateTime @default(now())
+model Category {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  Question    Question[]
 }
 
-enum Role {
-  STUDENT
-  ADMIN
+model Option {
+  id         String     @id @default(uuid())
+  questionId String
+  text       String
+  value      Int
+  Question   Question   @relation(fields: [questionId], references: [id])
+  Response   Response[]
+}
+
+model Question {
+  id         String       @id @default(uuid())
+  categoryId String
+  question   String
+  type       QuestionType @default(LIKERT)
+  Option     Option[]
+  Category   Category     @relation(fields: [categoryId], references: [id])
+  Response   Response[]
+}
+
+model Response {
+  id                            String   @id @default(uuid())
+  studentId                     String
+  teacherId                     String
+  questionId                    String
+  optionId                      String?
+  answerText                    String?
+  createdAt                     DateTime @default(now())
+  Option                        Option?  @relation(fields: [optionId], references: [id])
+  Question                      Question @relation(fields: [questionId], references: [id])
+  User_Response_studentIdToUser User     @relation("Response_studentIdToUser", fields: [studentId], references: [id])
+  User_Response_teacherIdToUser User     @relation("Response_teacherIdToUser", fields: [teacherId], references: [id])
+}
+
+model Student {
+  id        String  @id @default(uuid())
+  idNumber  Int     @unique
+  fullName  String
+  course    Course  
+  section   Section
+  User      User?
+}
+
+model User {
+  id                                String     @id @default(uuid())
+  idNumber                          Int        @unique
+  fullName                          String
+  password                          String
+  role                              Role       @default(STUDENT)
+  createdAt                         DateTime   @default(now())
+  studentId                         String?    @unique
+  Response_Response_studentIdToUser Response[] @relation("Response_studentIdToUser")
+  Response_Response_teacherIdToUser Response[] @relation("Response_teacherIdToUser")
+  Student                           Student?   @relation(fields: [studentId], references: [id])
 }
 
 enum Course {
   BSIT
   BSHM
+  BSIE
   BTLED
   BEED
-  BSIE
 }
 
 enum Section {
@@ -37,5 +83,14 @@ enum Section {
   B
   C
   D
-  E
+}
+
+enum QuestionType {
+  LIKERT
+  TEXT
+}
+
+enum Role {
+  STUDENT
+  ADMIN
 }

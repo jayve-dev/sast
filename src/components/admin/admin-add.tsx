@@ -27,8 +27,6 @@ const AdminAdd = () => {
     defaultValues: {
       idNumber: "",
       fullName: "",
-      section: undefined,
-      course: undefined,
       role: "ADMIN",
       password: "",
       confirmPassword: "",

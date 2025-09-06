@@ -28,8 +28,6 @@ const SignUpForm = () => {
     defaultValues: {
       idNumber: "",
       fullName: "",
-      section: undefined,
-      course: undefined,
       role: "STUDENT",
       password: "",
       confirmPassword: "",
@@ -128,60 +126,6 @@ const SignUpForm = () => {
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder='Jeboy Gwaponalang' />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='section'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Section</FormLabel>
-                  <FormControl>
-                    <select
-                      {...field}
-                      className='w-full p-2 border rounded'
-                      defaultValue=''
-                    >
-                      <option value='' disabled>
-                        Select Section
-                      </option>
-                      <option value='A'>A</option>
-                      <option value='B'>B</option>
-                      <option value='C'>C</option>
-                      <option value='D'>D</option>
-                      <option value='E'>E</option>
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='course'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Course</FormLabel>
-                  <FormControl>
-                    <select
-                      {...field}
-                      className='w-full p-2 border rounded'
-                      defaultValue=''
-                    >
-                      <option value='' disabled>
-                        Select Course
-                      </option>
-                      <option value='BSIT'>BSIT</option>
-                      <option value='BSIE'>BSIE</option>
-                      <option value='BSHM'>BSHM</option>
-                      <option value='BTLED'>BTLED</option>
-                      <option value='BEED'>BEED</option>
-                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

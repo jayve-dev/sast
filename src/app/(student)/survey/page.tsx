@@ -1,19 +1,17 @@
 // import StudentsPageHeader from '@/components/student/studentsPageHeader'
 import React from 'react'
-import {Separator} from "@/components/ui/separator";
-import {Button} from "@/components/ui/button";
+// import {Separator} from "@/components/ui/separator";
+// import {Button} from "@/components/ui/button";
 
 
 export default function page() {
 return (
     <div className="min-h-dvh w-full bg-[#FFFFE3] p-4">
-        {/* <StudentsPageHeader /> */}
-        <div className="font-bold text-2xl mb-2">Survey - Question</div>
+        {/* <div className="font-bold text-2xl mb-2">Survey - Question</div>
         <div className="text-sm text-gray-600 mb-2">
             Lorem Ipsum is simply dummy text of the printing and typesetting industry.
         </div>
 
-        {/* Header with tabs and preview button */}
         <div className="flex items-center justify-between p-4">
             <div className="p-2 flex gap-4 bg-zinc-200 w-fit rounded-lg shadow-md">
                 <div className="flex gap-2">
@@ -33,7 +31,6 @@ return (
 
         <Separator />
 
-        {/* Content section */}
         <div>
             <div className="flex items-center justify-between p-4">
                 <div>hello</div>
@@ -69,7 +66,7 @@ return (
                 </div>
             </div>
             test
-        </div>
+        </div> */}
     </div>
 )
 }

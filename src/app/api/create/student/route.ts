@@ -1,16 +1,15 @@
 import { prisma } from "../../../../../lib/db";
-import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import { Role } from "@/generated/prisma";
+import { Course, Section } from "@/generated/prisma";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { idNumber, fullName, password, role } = body;
+    const { idNumber, fullName, course, section } = body;
     console.log("DATABASE_URL", process.env.DATABASE_URL);
-    const isIdNumberExisting = await prisma.user.findUnique({
+    const isIdNumberExisting = await prisma.student.findUnique({
       where: {
-        idNumber: idNumber as number,
+        idNumber: Number(idNumber),
       },
     });
 
@@ -21,24 +20,15 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const idNumberInt = parseInt(idNumber, 10);
 
-    interface UserData {
-      idNumber: number;
-      fullName: string;
-      password: string;
-      role: Role;
-    }
-
-    const userData: UserData = {
-      idNumber: idNumberInt,
-      fullName,
-      password: hashedPassword,
-      role: role as Role,
-    };
-
-    const newUser = await prisma.user.create({ data: userData });
+    const newUser = await prisma.student.create({
+      data: {
+        idNumber: Number(idNumber),
+        fullName,
+        course: course as Course,
+        section: section as Section,
+      }
+    });
 
     if (!newUser) {
       console.error(
@@ -59,7 +49,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error(error);
     return new Response(
-      JSON.stringify({ message: "Error creating Admin", error }),
+      JSON.stringify({ message: "Error creating user", error }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -67,11 +57,11 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const users = await prisma.user.findMany();
-    return NextResponse.json(users, { status: 200 });
+    const students = await prisma.student.findMany();
+    return NextResponse.json(students, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { message: "Failed to fetch the admins", error },
+      { message: "Failed to fetch the students", error },
       { status: 500 }
     );
   }

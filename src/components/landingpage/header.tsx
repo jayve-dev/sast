@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+// import Link from "next/link";
 
 export default function Header() {
 return (
@@ -11,19 +11,19 @@ return (
         <div className="font-bold text-2xl text-white items-center text-center ml-5 ">SAST</div>
         <div>
             <div className="flex flex-row-reverse gap-4">
-                <Link href="/signup">
+                <a href="/signup">
                 <Button variant="ghost"
                     className="text-md text-white border-white hover:bg-white hover:text-black border p-4 hover:scale-105 transition-transform duration-200">
                     Sign up
                 </Button>
-                </Link>
+                </a>
 
-                <Link href="/signin">
+                <a href="/signin">
                 <Button
                     className="text-md hover:bg-white hover:text-black p-4 bg-gray-900 hover:scale-105 transition-transform duration-200">
                     Sign in
                 </Button>
-                </Link>
+                </a>
             </div>
         </div>
     </div>
