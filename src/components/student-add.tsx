@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AddModal } from "./ui/add-modal";
 import { CreateStudentSchema } from "../../schema";
 import { useForm } from "react-hook-form";
@@ -18,29 +18,44 @@ import {
 
 const StudentAdd = () => {
   const [isLoading, setLoading] = useState(false);
+  const [programs, setPrograms] = useState<{ id: string; name: string }[]>([]);
+  const [sections, setSections] = useState<{ id: string; name: string }[]>([]);
 
   const form = useForm({
     resolver: zodResolver(CreateStudentSchema),
     defaultValues: {
       idNumber: "",
       fullName: "",
-      section: undefined,
-      course: undefined,
+      sectionId: "",
+      programId: "",
     },
   });
 
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      const res = await fetch("/api/create/department/program");
+      const data = await res.json();
+      setPrograms(data);
+    };
+    fetchPrograms();
+  }, []);
+
+  useEffect(() => {
+    const fetchSections = async () => {
+      const res = await fetch("/api/create/department/section");
+      const data = await res.json();
+      setSections(data);
+    };
+    fetchSections();
+  }, []);
+
   const onSubmit = async (data: z.infer<typeof CreateStudentSchema>) => {
     setLoading(true);
-    // console.log(data);
 
-    // Convert idNumber to a number before sending
     const payload = {
       ...data,
       idNumber: Number(data.idNumber),
     };
-
-    // Remove confirmPassword before sending to backend
-    // delete payload.confirmPassword;
 
     const response = await fetch("/api/create/student", {
       method: "POST",
@@ -100,10 +115,10 @@ const StudentAdd = () => {
               />
               <FormField
                 control={form.control}
-                name='course'
+                name='programId'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Course</FormLabel>
+                    <FormLabel>Program</FormLabel>
                     <FormControl>
                       <select
                         {...field}
@@ -111,13 +126,13 @@ const StudentAdd = () => {
                         defaultValue=''
                       >
                         <option value='' disabled>
-                          Select Course
+                          Select Program
                         </option>
-                        <option value='BSIT'>BSIT</option>
-                        <option value='BSIE'>BSIE</option>
-                        <option value='BSHM'>BSHM</option>
-                        <option value='BTLED'>BTLED</option>
-                        <option value='BEED'>BEED</option>
+                        {programs.map((program) => (
+                          <option key={program.id} value={program.id}>
+                            {program.name}
+                          </option>
+                        ))}
                       </select>
                     </FormControl>
                     <FormMessage />
@@ -126,7 +141,7 @@ const StudentAdd = () => {
               />
               <FormField
                 control={form.control}
-                name='section'
+                name='sectionId'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Section</FormLabel>
@@ -139,10 +154,11 @@ const StudentAdd = () => {
                         <option value='' disabled>
                           Select Section
                         </option>
-                        <option value='A'>A</option>
-                        <option value='B'>B</option>
-                        <option value='C'>C</option>
-                        <option value='D'>D</option>
+                        {sections.map((section) => (
+                          <option key={section.id} value={section.id}>
+                            {section.name}
+                          </option>
+                        ))}
                       </select>
                     </FormControl>
                     <FormMessage />

@@ -45,27 +45,27 @@ export function NavMain({
             className='group/collapsible'
           >
             <SidebarMenuItem>
-              <Link href={item.href}>
-                <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip={item.title}>
-                    {item.icon && <item.icon />}
+              <CollapsibleTrigger asChild>
+                <SidebarMenuButton tooltip={item.title}>
+                  {item.icon && <item.icon />}
+                  <Link href={item.href}>
                     <span>{item.title}</span>
-                    {item.items && (
-                      <ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
-                    )}
-                  </SidebarMenuButton>
-                </CollapsibleTrigger>
-              </Link>
+                  </Link>
+                  {item.items && (
+                    <ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+                  )}
+                </SidebarMenuButton>
+              </CollapsibleTrigger>
               {item.items && (
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {item.items?.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton asChild>
-                          <Link href={subItem.href}>
+                        <Link href={subItem.href}>
+                          <SidebarMenuSubButton asChild>
                             <span>{subItem.title}</span>
-                          </Link>
-                        </SidebarMenuSubButton>
+                          </SidebarMenuSubButton>
+                        </Link>
                       </SidebarMenuSubItem>
                     ))}
                   </SidebarMenuSub>

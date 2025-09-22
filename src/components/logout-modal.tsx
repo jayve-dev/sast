@@ -12,9 +12,9 @@ const LogoutModal = () => {
   return (
     <div>
       <Modal
-        title="Logout"
+        title="Log out"
         description="Are you sure you want to logout?"
-        triggerText="Logout"
+        triggerText="Log out"
         onConfirm={handleConfirm}
       />
     </div>

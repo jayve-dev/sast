@@ -2,12 +2,22 @@
 import { StudentHeader } from "@/components/student-header";
 import React, { useEffect, useState } from "react";
 
+interface Program {
+  id: string;
+  name: string;
+}
+
+interface Section {
+  id: string;
+  name: string;
+}
+
 interface Users {
   id: string;
   idNumber: number;
   fullName: string;
-  course: string;
-  section: string;
+  program: Program;
+  section: Section;
 }
 
 export default function Students() {
@@ -40,8 +50,8 @@ export default function Students() {
             <div key={user.id} className='p-5 flex flex-row items-center justify-between border rounded-xl hover:scale-105 transition-all duration-300 mb-2'>
               <p>{user.idNumber}</p>
               <p>{user.fullName}</p>
-              <p>{user.course}</p>
-              <p>{user.section}</p>
+              <p>{user.program.name}</p>
+              <p>{user.section.name}</p>
             </div>
           ))}
       </div>

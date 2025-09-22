@@ -4,11 +4,11 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { idNumber, fullName, programId, sectionId } = body;
+    const { facultyId, fullName, } = body;
     console.log("DATABASE_URL", process.env.DATABASE_URL);
-    const isIdNumberExisting = await prisma.student.findUnique({
+    const isIdNumberExisting = await prisma.teacher.findUnique({
       where: {
-        idNumber: Number(idNumber),
+        facultyId: Number(facultyId),
       },
     });
 
@@ -20,13 +20,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const newUser = await prisma.student.create({
+    const newUser = await prisma.teacher.create({
       data: {
-        idNumber: Number(idNumber),
+        facultyId: Number(facultyId),
         fullName,
-        programId,
-        sectionId,
-      },
+      }
     });
 
     if (!newUser) {
@@ -56,16 +54,11 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const students = await prisma.student.findMany({
-      include: {
-        program: true,
-        section: true,
-      },
-    });
-    return NextResponse.json(students, { status: 200 });
+    const teachers = await prisma.teacher.findMany();
+    return NextResponse.json(teachers, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { message: "Failed to fetch the students", error },
+      { message: "Failed to fetch the teachers", error },
       { status: 500 }
     );
   }

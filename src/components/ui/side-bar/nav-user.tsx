@@ -28,6 +28,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { LogoutModal } from "@/components/logout-modal"
 
 export function NavUser({
   user,
@@ -106,10 +107,9 @@ export function NavUser({
               </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               <LogOut />
-              Log out
-              {/* <LogoutModal /> */}
+              <LogoutModal />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

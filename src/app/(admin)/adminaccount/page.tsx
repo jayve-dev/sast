@@ -37,7 +37,7 @@ export default function AdminPage() {
     setUsers(data);
   };
 
-  // fetchStudents();
+  fetchStudents();
 
   return (
     <>
@@ -60,7 +60,7 @@ export default function AdminPage() {
             <AdminAdd />
           </div>
 
-          <div className='mt-8  '>
+          <div className='mt-8'>
             <Table className='bg-white text-black rounded-lg '>
               <TableHeader className='p-10'>
                 <TableRow>
@@ -71,13 +71,16 @@ export default function AdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.filter(user => user.role === "ADMIN").map((user, idx) => (
-                  <TableRow key={user.id}>
-                    <TableCell className='font-medium'>{idx + 1}</TableCell>
-                    <TableCell>{user.idNumber}</TableCell>
-                    <TableCell>{user.fullName}</TableCell>
-                    <TableCell>Online</TableCell>                  </TableRow>
-                ))}
+                {users
+                  .filter((user) => user.role === "ADMIN")
+                  .map((user, idx) => (
+                    <TableRow key={user.id}>
+                      <TableCell className='font-medium'>{idx + 1}</TableCell>
+                      <TableCell>{user.idNumber}</TableCell>
+                      <TableCell>{user.fullName}</TableCell>
+                      <TableCell>Online</TableCell>{" "}
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </div>

@@ -26,34 +26,39 @@ model Option {
 
 model Question {
   id         String       @id @default(uuid())
-  categoryId String
   question   String
   type       QuestionType @default(LIKERT)
+  categoryId String
   Option     Option[]
   Category   Category     @relation(fields: [categoryId], references: [id])
   Response   Response[]
 }
 
 model Response {
-  id                            String   @id @default(uuid())
-  studentId                     String
-  teacherId                     String
-  questionId                    String
-  optionId                      String?
-  answerText                    String?
-  createdAt                     DateTime @default(now())
-  Option                        Option?  @relation(fields: [optionId], references: [id])
-  Question                      Question @relation(fields: [questionId], references: [id])
-  User_Response_studentIdToUser User     @relation("Response_studentIdToUser", fields: [studentId], references: [id])
-  User_Response_teacherIdToUser User     @relation("Response_teacherIdToUser", fields: [teacherId], references: [id])
+  id           String           @id @default(uuid())
+  studentId    String
+  teacherId    String
+  questionId   String
+  optionId     String?
+  answerText   String?
+  assignmentId String
+  createdAt    DateTime         @default(now())
+  assignment   TeachersAssigned @relation(fields: [assignmentId], references: [id])
+  Option       Option?          @relation(fields: [optionId], references: [id])
+  Question     Question         @relation(fields: [questionId], references: [id])
+  student      User             @relation("Response_student", fields: [studentId], references: [id])
+  teacher      Teacher          @relation(fields: [teacherId], references: [id])
 }
 
 model Student {
-  id        String  @id @default(uuid())
-  idNumber  Int     @unique
+  id        String   @id @default(uuid())
+  idNumber  Int      @unique
   fullName  String
-  course    Course  
-  section   Section
+  programId  String
+  program    Program   @relation(fields: [programId], references: [id])
+  sectionId String
+  section   Section  @relation(fields: [sectionId], references: [id])
+  createdAt DateTime @default(now())
   User      User?
 }
 
@@ -63,26 +68,65 @@ model User {
   fullName                          String
   password                          String
   role                              Role       @default(STUDENT)
-  createdAt                         DateTime   @default(now())
   studentId                         String?    @unique
-  Response_Response_studentIdToUser Response[] @relation("Response_studentIdToUser")
-  Response_Response_teacherIdToUser Response[] @relation("Response_teacherIdToUser")
+  createdAt                         DateTime   @default(now())
+  Response_Response_studentIdToUser Response[] @relation("Response_student")
   Student                           Student?   @relation(fields: [studentId], references: [id])
 }
 
-enum Course {
-  BSIT
-  BSHM
-  BSIE
-  BTLED
-  BEED
+model Teacher {
+  id        String             @id @default(uuid())
+  facultyId Int                @unique
+  fullName  String
+  createdAt DateTime           @default(now())
+  responses Response[]
+  assigns   TeachersAssigned[]
 }
 
-enum Section {
-  A
-  B
-  C
-  D
+model Course {
+  id        String             @id @default(uuid())
+  code      String             @unique
+  name      String
+  sectionId String
+  section   Section            @relation(fields: [sectionId], references: [id])
+  programId String
+  Program   Program            @relation(fields: [programId], references: [id])
+  assigned  TeachersAssigned[]
+}
+
+model Section {
+  id        String             @id @default(uuid())
+  name      String
+  student   Student[]
+  programId String
+  Program   Program            @relation(fields: [programId], references: [id])
+  courses   Course[]
+  assign    TeachersAssigned[]
+}
+
+model Program {
+  id        String             @id @default(uuid())
+  name      String
+  assign    TeachersAssigned[]
+  students  Student[]
+  sections  Section[]
+  courses   Course[]           
+  createdAt DateTime          @default(now())
+}
+
+model TeachersAssigned {
+  id          String     @id @default(uuid())
+  teacherId   String
+  courseId    String
+  programId   String
+  sectionId   String
+  yearLevelId String
+  createdAt   DateTime   @default(now())
+  responses   Response[]
+  Course      Course     @relation(fields: [courseId], references: [id])
+  Program     Program    @relation(fields: [programId], references: [id])
+  Section     Section    @relation(fields: [sectionId], references: [id])
+  Teacher     Teacher    @relation(fields: [teacherId], references: [id])
 }
 
 enum QuestionType {

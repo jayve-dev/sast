@@ -3,7 +3,7 @@ import "../globals.css";
 // import { SideBar } from "@/components/side-bar";
 import { Header } from "@/components/header";
 import { auth } from "../../../lib/auth";
-import { redirect } from "next/navigation";
+// import { redirect } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/ui/side-bar/admin-app-sidebar";
@@ -25,11 +25,11 @@ export default async function AuthLayout({
 }>) {
   const session = await auth();
 
-  if (!session) {
-    redirect("/signin");
-  } else if (session.user.role !== "ADMIN") {
-    redirect("/survey");
-  }
+  // if (!session) {
+  //   redirect("/signin");
+  // } else if (session.user.role !== "ADMIN") {
+  //   redirect("/survey");
+  // }
 
   return (
     <SidebarProvider
