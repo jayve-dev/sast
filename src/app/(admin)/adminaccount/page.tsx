@@ -49,18 +49,11 @@ export default function AdminPage() {
                 placeholder='Enter account name'
                 className='bg-white min-w-[400px] mx-auto'
               />
-              {/* <div
-                        className='relative hidden sm:flex w-fit h-fit hover:scale-105 transition-transform duration-200 bg-[#FAF9F6] rounded-lg'>
-                        <Input placeholder='Search...' />
-                    </div> */}
-
-              {/* <Button variant={"secondary"}> Add Account </Button> */}
             </div>
-            {/*<Button variant={'secondary'}> Add Account </Button>*/}
             <AdminAdd />
           </div>
 
-          <div className='mt-8  '>
+          <div className='mt-8'>
             <Table className='bg-white text-black rounded-lg '>
               <TableHeader className='p-10'>
                 <TableRow>
@@ -71,13 +64,16 @@ export default function AdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.filter(user => user.role === "ADMIN").map((user, idx) => (
-                  <TableRow key={user.id}>
-                    <TableCell className='font-medium'>{idx + 1}</TableCell>
-                    <TableCell>{user.idNumber}</TableCell>
-                    <TableCell>{user.fullName}</TableCell>
-                    <TableCell>Online</TableCell>                  </TableRow>
-                ))}
+                {users
+                  .filter((user) => user.role === "ADMIN")
+                  .map((user, idx) => (
+                    <TableRow key={user.id}>
+                      <TableCell className='font-medium'>{idx + 1}</TableCell>
+                      <TableCell>{user.idNumber}</TableCell>
+                      <TableCell>{user.fullName}</TableCell>
+                      <TableCell>Online</TableCell>{" "}
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </div>
