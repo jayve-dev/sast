@@ -73,7 +73,7 @@ const CourseAdd = () => {
     }
 
     setLoading(false);
-    console.log("Account created successfully:", resData);
+    console.log("Course created successfully:", resData);
     form.reset();
   };
 

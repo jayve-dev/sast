@@ -37,7 +37,7 @@ export default function AdminPage() {
     setUsers(data);
   };
 
-  fetchStudents();
+  // fetchStudents();
 
   return (
     <>
@@ -49,14 +49,7 @@ export default function AdminPage() {
                 placeholder='Enter account name'
                 className='bg-white min-w-[400px] mx-auto'
               />
-              {/* <div
-                        className='relative hidden sm:flex w-fit h-fit hover:scale-105 transition-transform duration-200 bg-[#FAF9F6] rounded-lg'>
-                        <Input placeholder='Search...' />
-                    </div> */}
-
-              {/* <Button variant={"secondary"}> Add Account </Button> */}
             </div>
-            {/*<Button variant={'secondary'}> Add Account </Button>*/}
             <AdminAdd />
           </div>
 

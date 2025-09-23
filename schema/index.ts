@@ -30,6 +30,8 @@ export const SignInSchema = z.object({
 export const CreateStudentSchema = z.object({
   idNumber: z.string().min(7, {
     message: "Please enter a valid ID number",
+  }).max(7, {
+    message: "ID number must be at most 7 characters long",
   }),
   fullName: z.string().min(1, {
     message: "Please enter your Full name",

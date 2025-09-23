@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { AddModal } from "./ui/add-modal";
 import { CreateStudentSchema } from "../../schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -77,102 +76,100 @@ const StudentAdd = () => {
 
   return (
     <>
-      <AddModal title='Add Student' triggerText='Add Student'>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-            <div className='w-full grid sm:grid-cols-2 gap-4'>
-              <FormField
-                control={form.control}
-                name='idNumber'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ID Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type='number'
-                        placeholder='1234567'
-                        className='w-full'
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+          <div className='w-full grid sm:grid-cols-2 gap-4'>
+            <FormField
+              control={form.control}
+              name='idNumber'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ID Number</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type='number'
+                      placeholder='1234567'
+                      className='w-full'
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name='fullName'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder='Jerold Elson Monleon' />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='programId'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Program</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className='w-full p-2 border rounded'
-                        defaultValue=''
-                      >
-                        <option value='' disabled>
-                          Select Program
+            <FormField
+              control={form.control}
+              name='fullName'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder='Jerold Elson Monleon' />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='programId'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Program</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      className='w-full p-2 border rounded'
+                      defaultValue=''
+                    >
+                      <option value='' disabled>
+                        Select Program
+                      </option>
+                      {programs.map((program) => (
+                        <option key={program.id} value={program.id}>
+                          {program.name}
                         </option>
-                        {programs.map((program) => (
-                          <option key={program.id} value={program.id}>
-                            {program.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='sectionId'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Section</FormLabel>
-                    <FormControl>
-                      <select
-                        {...field}
-                        className='w-full p-2 border rounded'
-                        defaultValue=''
-                      >
-                        <option value='' disabled>
-                          Select Section
+                      ))}
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='sectionId'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Section</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      className='w-full p-2 border rounded'
+                      defaultValue=''
+                    >
+                      <option value='' disabled>
+                        Select Section
+                      </option>
+                      {sections.map((section) => (
+                        <option key={section.id} value={section.id}>
+                          {section.name}
                         </option>
-                        {sections.map((section) => (
-                          <option key={section.id} value={section.id}>
-                            {section.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                      ))}
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-            <Button type='submit' className='w-full' disabled={isLoading}>
-              {isLoading ? "Loading..." : "ADD"}
-            </Button>
-          </form>
-        </Form>
-      </AddModal>
+          <Button type='submit' className='w-full' disabled={isLoading}>
+            {isLoading ? "Loading..." : "ADD"}
+          </Button>
+        </form>
+      </Form>
     </>
   );
 };

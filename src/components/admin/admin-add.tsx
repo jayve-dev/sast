@@ -103,7 +103,7 @@ const AdminAdd = () => {
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder='Jerold Elson Monleon' />
+                      <Input {...field} placeholder='Jiboy Monleon' />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
