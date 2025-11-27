@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../lib/db";
 
+type QuestionInput = {
+  text: string;
+  category: string;
+};
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -13,7 +18,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get all teacher assignments
     const teacherAssignments = await prisma.teachersAssigned.findMany({
       include: {
         Teacher: true,
@@ -30,7 +34,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get or create categories
     const categoryMap = new Map<string, string>();
 
     for (const q of questions) {
@@ -44,9 +47,8 @@ export async function POST(req: Request) {
       }
     }
 
-    // Create questions with Likert options
     const createdQuestions = await Promise.all(
-      questions.map(async (q: any) => {
+      questions.map(async (q: QuestionInput) => {
         const categoryId = categoryMap.get(q.category)!;
 
         const question = await prisma.question.create({
@@ -83,11 +85,11 @@ export async function POST(req: Request) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
-    console.error("Create survey error:", error);
-    return NextResponse.json(
-      { message: "Failed to create survey", error: error?.message },
-      { status: 500 }
+  } catch (error) {
+    console.error(error);
+    return new Response(
+      JSON.stringify({ message: "Failed to create survey", error }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }
@@ -108,9 +110,10 @@ export async function GET() {
 
     return NextResponse.json(questions);
   } catch (error) {
-    return NextResponse.json(
-      { message: "Failed to fetch questions" },
-      { status: 500 }
+    console.error(error);
+    return new Response(
+      JSON.stringify({ message: "Failed to fetch questions", error }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }
