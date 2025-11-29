@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
@@ -10,7 +10,7 @@ datasource db {
 
 model Category {
   id          String     @id @default(uuid())
-  name        String
+  name        String     @unique
   description String?
   Question    Question[]
 }
