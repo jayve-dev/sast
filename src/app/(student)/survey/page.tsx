@@ -3,11 +3,34 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Check, AlertCircle } from 'lucide-react';
 
-export default function StudentSurveyPage() {
-  const [currentPage, setCurrentPage] = useState(0);
-  const [answers, setAnswers] = useState({});
+type AnswerValue = string | number | string[];
 
-  const survey = {
+interface Question {
+  id: string;
+  text: string;
+  type: 'multiple-choice' | 'text' | 'rating' | 'checkbox';
+  options?: string[];
+  scale?: number;
+  placeholder?: string;
+}
+
+interface Page {
+  id: number;
+  title: string;
+  questions: Question[];
+}
+
+interface Survey {
+  title: string;
+  description: string;
+  pages: Page[];
+}
+
+export default function StudentSurveyPage() {
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
+
+  const survey: Survey = {
     title: "Student Feedback Survey",
     description: "Help us improve your learning experience by sharing your thoughts and opinions.",
     pages: [
@@ -54,7 +77,7 @@ export default function StudentSurveyPage() {
   const totalPages = survey.pages.length;
   const progress = ((currentPage + 1) / totalPages) * 100;
 
-  const handleAnswer = (questionId, value) => {
+  const handleAnswer = (questionId: string, value: AnswerValue) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
 
@@ -126,7 +149,7 @@ export default function StudentSurveyPage() {
                 </div>
 
                 {/* Multiple Choice */}
-                {question.type === 'multiple-choice' && (
+                {question.type === 'multiple-choice' && question.options && (
                   <div className="space-y-2 ml-11">
                     {question.options.map((option) => (
                       <label
@@ -161,7 +184,7 @@ export default function StudentSurveyPage() {
                 )}
 
                 {/* Rating */}
-                {question.type === 'rating' && (
+                {question.type === 'rating' && question.scale && (
                   <div className="ml-11">
                     <div className="flex gap-2">
                       {[...Array(question.scale)].map((_, i) => (
@@ -186,7 +209,7 @@ export default function StudentSurveyPage() {
                 )}
 
                 {/* Checkbox */}
-                {question.type === 'checkbox' && (
+                {question.type === 'checkbox' && question.options && (
                   <div className="space-y-2 ml-11">
                     {question.options.map((option) => (
                       <label
@@ -195,12 +218,14 @@ export default function StudentSurveyPage() {
                       >
                         <input
                           type="checkbox"
-                          checked={(answers[question.id] || []).includes(option)}
+                          // Use Array.isArray to narrow the union type before using .includes
+                          checked={Array.isArray(answers[question.id]) && (answers[question.id] as string[]).includes(option)}
                           onChange={(e) => {
-                            const current = answers[question.id] || [];
+                            // Narrow the type safely to an array (or start with an empty array)
+                            const current = Array.isArray(answers[question.id]) ? [...(answers[question.id] as string[])] : [];
                             const updated = e.target.checked
                               ? [...current, option]
-                              : current.filter(o => o !== option);
+                              : current.filter((o: string) => o !== option);
                             handleAnswer(question.id, updated);
                           }}
                           className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
