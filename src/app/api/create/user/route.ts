@@ -1,26 +1,37 @@
 import { prisma } from "../../../../../lib/db";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import { Course, Section } from "@/generated/prisma";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { idNumber, fullName, password, course, section } = body;
+    const { idNumber, fullName, password } = body;
     console.log("DATABASE_URL", process.env.DATABASE_URL);
-    const isIdNumberExisting = await prisma.user.findUnique({
-      where: {
-        idNumber: idNumber as number,
-      },
+
+    const isIdNumberExisting = await prisma.student.findUnique({
+      where: { idNumber: idNumber as number },
     });
 
-    if (isIdNumberExisting) {
-      console.error("This ID number is already in use");
+    if (!isIdNumberExisting) {
+      console.error("This ID number not found in the record");
       return NextResponse.json(
-        { message: "This ID number is already in use" },
+        { message: "This ID number not found in the record" },
         { status: 500 }
       );
     }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { idNumber: idNumber as number },
+    });
+
+    if (existingUser) {
+      console.error("This student ID is already in use");
+      return NextResponse.json(
+        { message: "This student ID is already in use" },
+        { status: 500 }
+      );
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const idNumberInt = parseInt(idNumber, 10);
 
@@ -28,16 +39,14 @@ export async function POST(request: Request) {
       idNumber: number;
       fullName: string;
       password: string;
-      course: Course;
-      section: Section;
+      studentId: string;
     }
 
     const userData: UserData = {
       idNumber: idNumberInt,
       fullName,
       password: hashedPassword,
-      course: course as Course,
-      section: section as Section,
+      studentId: isIdNumberExisting.id,
     };
 
     const newUser = await prisma.user.create({ data: userData });
@@ -58,6 +67,7 @@ export async function POST(request: Request) {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
+
   } catch (error) {
     console.error(error);
     return new Response(
@@ -73,7 +83,7 @@ export async function GET() {
     return NextResponse.json(users, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch the students" },
+      { message: "Failed to fetch the students", error },
       { status: 500 }
     );
   }

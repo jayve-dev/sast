@@ -11,13 +11,14 @@ DialogTrigger,
 interface AddModalProps {
 title?: string;
 children: React.ReactNode;
-triggerText?: string;
+triggerText?: React.ReactNode;
+className?: string;
 }
 
-const AddModal = ({ title, children, triggerText }: AddModalProps) => {
+const AddModal = ({ title, children, triggerText, className }: AddModalProps) => {
 return (
 <Dialog>
-    <DialogTrigger>{triggerText}</DialogTrigger>
+    <DialogTrigger className={className}>{triggerText}</DialogTrigger>
     <DialogContent>
         <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

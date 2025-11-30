@@ -1,38 +1,15 @@
-"use client";
-import React, { useRef } from "react";
-import Lottie, { LottieRefCurrentProps } from "lottie-react";
-import animationData from "../assets/Survey.json";
-import { Button } from "@/components/ui/button";
-import Header from "@/components/landingpage/header";
-import Footer from "@/components/landingpage/footer";
+import { auth } from "../../lib/auth";
+import { redirect } from "next/navigation";
+import { Welcome } from "@/components/landingpage/Welcome";   
 
+export default async function Page() {
 
-export default function Welcome() {
-const surveyImage = useRef<LottieRefCurrentProps>(null);
+  const session = await auth();
 
-    return (
-    <div className="min-h-screen flex flex-col bg-[#FFFFE3]">
-        <Header />
-        <div className="flex-1 flex items-center justify-center p-20 w-full">
-            <div className="flex flex-col md:flex-row items-center justify-between w-full gap-10">
-                <div className="flex flex-1 flex-col gap-2 ">
-                    <h1 className="font-bold text-4xl md:text-6xl leading-tight">
-                        Welcome to Sast <br />
-                    </h1>
-                    <h2 className="font-semibold text-xl"> Your innovative solution
-                        for survey assessment</h2>
-                    <p className="text-gray-600">
-                        Join us to streamline your survey processes and enhance your data collection.
-                    </p>
-                    <Button className="w-fit">Come and support us!</Button>
-                </div>
-                <div className="flex-1 hidden md:flex items-center justify-center">
-                    <Lottie lottieRef={surveyImage} animationData={animationData}
-                        className="w-[400px] h-[400px] md:w-[600px] md:h-[600px]" />
-                </div>
-            </div>
-        </div>
-        <Footer />
-    </div>
-    );
+    if(session) {
+        redirect("/dashboard");
     }
+
+  return <Welcome />;
+
+}

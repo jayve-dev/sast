@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-// import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
@@ -19,66 +19,72 @@ import {
 } from "@/components/ui/form";
 import { useEffect } from "react";
 import { SignInSchema } from "../../../../schema";
+import { useSession } from "next-auth/react";
 
 const SignInForm = () => {
-//   const router = useRouter();
+  const router = useRouter();
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(()=>{
-    setTimeout(()=>{
-      setError("")
-    }, 5000)
-  },[error])
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    setTimeout(() => {
+      setError("");
+    }, 5000);
+  }, [error]);
 
   const form = useForm({
     resolver: zodResolver(SignInSchema),
     defaultValues: {
-      number: "",
+      idNumber: "",
       password: "",
     },
   });
 
   const onSubmit = async (data: z.infer<typeof SignInSchema>) => {
-
-    console.log("data.number", data.number)
+    console.log("data.idNumber", data.idNumber);
+    setIsLoading(true);
     const result = await signIn("credentials", {
       redirect: false,
-      number: data.number,    
+      idNumber: data.idNumber,
       password: data.password,
-      
     });
 
     if (result?.error) {
-        console.error("Login error:", result.error);
-        console.log("Result",result)
-        setError("Invalid Credentials")
+      console.error("Login error:", result.error);
+      console.log("Result", result);
+      setError("Invalid Credentials");
     } else {
-        console.log("Login successful");
-        // router.push(result?.url ?? "/");
+      console.log("Login successful");
+      if (session?.user?.role === "ADMIN") {
+        router.push("dashboard");
+      } else {
+        router.push("survey");
+      }
+      setIsLoading(false);
     }
   };
 
-
-
   return (
     <CardWrapper
-      label="Sign In"
-      title="Welcome Back!"
-      backButtonHref="/signup"
+      label='Sign In'
+      title='Welcome Back!'
+      backButtonHref='/signup'
       backButtonLabel="Don't have an account? Sign Up"
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+          <div className='space-y-4'>
             <FormField
               control={form.control}
-              name="number"
+              name='idNumber'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>ID Number</FormLabel>
                   <FormControl>
-                    <Input {...field} type="number" placeholder="1234567" />
+                    <Input {...field} type='number' placeholder='1234567' />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -87,23 +93,27 @@ const SignInForm = () => {
 
             <FormField
               control={form.control}
-              name="password"
+              name='password'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <div className="relative">
+                    <div className='relative'>
                       <Input
                         {...field}
                         type={isShowPassword ? "text" : "password"}
-                        placeholder="********"
+                        placeholder='********'
                       />
                       <button
-                        type="button"
-                        className="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-gray-700"
+                        type='button'
+                        className='absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-gray-700'
                         onClick={() => setIsShowPassword(!isShowPassword)}
                       >
-                        {isShowPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                        {isShowPassword ? (
+                          <Eye size={20} />
+                        ) : (
+                          <EyeOff size={20} />
+                        )}
                       </button>
                     </div>
                   </FormControl>
@@ -112,10 +122,9 @@ const SignInForm = () => {
               )}
             />
           </div>
-          
 
-          <Button type="submit" className="w-full">
-            Sign In
+          <Button type='submit' className='w-full'>
+            { isLoading ? "Loading..." : "Sign In"}
           </Button>
         </form>
       </Form>
@@ -123,4 +132,4 @@ const SignInForm = () => {
   );
 };
 
-export { SignInForm }
+export { SignInForm };

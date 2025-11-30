@@ -1,26 +1,21 @@
 "use client"
 import React from 'react'
 import { Modal } from './ui/modal';
+import { signOut } from 'next-auth/react';
 
 const LogoutModal = () => {
 
-  // const handleConfirm = () => {
-  //   // Handle logout confirmation
-  // }
-
-  // const handleCancel = () => {
-  //   // Handle logout cancellation
-  // }
+  const handleConfirm = async () => {
+    await signOut();
+  }
 
   return (
     <div>
       <Modal
-        // isOpen={true}
-        title="Logout"
+        title="Log out"
         description="Are you sure you want to logout?"
-        triggerText="Logout"
-        // onConfirm={handleConfirm}
-        // onCancel={handleCancel}
+        triggerText="Log out"
+        onConfirm={handleConfirm}
       />
     </div>
   )
