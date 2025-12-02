@@ -1,5 +1,5 @@
 import React from "react";
-import { SelectCard } from "@/components/ui/select-card";
+// import { SelectCard } from "@/components/ui/select-card";
 import { Input } from "./ui/input";
 import { IoSearch } from "react-icons/io5";
 import { Button } from "./ui/button";
@@ -15,23 +15,23 @@ const IHeader = () => {
         </button>
       </div>
 
-      <SelectCard
+      {/* <SelectCard
         placeholder='Select a question'
         options={[
           { value: "question1", label: "Question 1" },
           { value: "question2", label: "Question 2" },
           { value: "question3", label: "Question 3" },
         ]}
-      />
+      /> */}
 
-      <SelectCard
+      {/* <SelectCard
         placeholder='Select a question'
         options={[
           { value: "question1", label: "Question 1" },
           { value: "question2", label: "Question 2" },
           { value: "question3", label: "Question 3" },
         ]}
-      />
+      /> */}
 
         <Button className='bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 hover:scale-105'>
             <InstructorAdd />

@@ -1,8 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import "../globals.css";
+// import "../globals.css";
 import { Header } from "@/components/header";
 import { auth } from "../../../lib/auth";
-import { redirect } from "next/navigation";
+// import { redirect } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -24,11 +24,11 @@ export default async function AuthLayout({
 
   const session = await auth();
 
-  if(!session) {
-    redirect("/signin"); 
-  } else if (session.user.role !== "STUDENT") {
-    redirect("/dashboard");
-  }
+  // if(!session) {
+  //   redirect("/signin"); 
+  // } else if (session.user.role !== "STUDENT") {
+  //   redirect("/dashboard");
+  // }
 
   return (
     <SidebarProvider>
