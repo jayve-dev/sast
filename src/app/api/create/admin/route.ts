@@ -1,7 +1,7 @@
 import { prisma } from "../../../../../lib/db";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import { Role } from "@/generated/prisma";
+import { Role } from "@/generated/prisma/enums";
 
 export async function POST(request: Request) {
   try {

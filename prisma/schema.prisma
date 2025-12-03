@@ -120,7 +120,6 @@ model TeachersAssigned {
   courseId    String
   programId   String
   sectionId   String
-  yearLevelId String
   createdAt   DateTime   @default(now())
   responses   Response[]
   Course      Course     @relation(fields: [courseId], references: [id])
