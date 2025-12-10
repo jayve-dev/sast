@@ -15,6 +15,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { BookOpen, Plus } from "lucide-react"
+import { Section } from "@/generated/prisma/browser"
 
 interface Program {
   id: string
@@ -31,19 +32,23 @@ interface Course {
 export default function DepartmentDashboard() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [courses, setCourses] = useState<Course[]>([])
+  const [sections, setSections] = useState<Section[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [programRes, courseRes] = await Promise.all([
+        const [programRes, courseRes, sectionRes] = await Promise.all([
           fetch("/api/create/department/program"),
           fetch("/api/create/department/course"),
+          fetch("/api/create/department/section"),
         ])
         const programData = await programRes.json()
         const courseData = await courseRes.json()
+        const sectionData = await sectionRes.json()
         setPrograms(programData)
         setCourses(courseData)
+        setSections(sectionData)
       } catch (error) {
         console.error("Failed to fetch data:", error)
       } finally {
@@ -72,17 +77,17 @@ export default function DepartmentDashboard() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Create New Item</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <DropdownMenuItem onSelect={(e: Event) => e.preventDefault()}>
                 <AddModal triggerText="Program" title="Add Program">
                   <ProgramAdd />
                 </AddModal>
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <DropdownMenuItem onSelect={(e: Event) => e.preventDefault()}>
                 <AddModal triggerText="Section" title="Add Section">
                   <SectionAdd />
                 </AddModal>
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <DropdownMenuItem onSelect={(e: Event) => e.preventDefault()}>
                 <AddModal triggerText="Course" title="Add Course">
                   <CourseAdd />
                 </AddModal>
@@ -149,7 +154,7 @@ export default function DepartmentDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <p className="text-4xl font-bold text-foreground">-</p>
+                <p className="text-4xl font-bold text-foreground">{loading ? "-" : sections.length}</p>
                 <p className="text-sm text-muted-foreground">Total active sections</p>
               </div>
             </CardContent>
