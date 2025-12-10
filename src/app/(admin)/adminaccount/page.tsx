@@ -212,7 +212,7 @@ export default function AdminPage() {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger
-                            onClick={(e) => e.preventDefault()}
+                            onClick={(e: Event) => e.preventDefault()}
                           >
                             <Ellipsis />
                           </DropdownMenuTrigger>
@@ -226,7 +226,7 @@ export default function AdminPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className='text-red-600'
-                              onClick={(e) => {
+                              onClick={(e: Event) => {
                                 setDeleteId(user.id);
                                 e.preventDefault();
                               }}
