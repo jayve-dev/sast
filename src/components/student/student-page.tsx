@@ -63,7 +63,6 @@ export default function StudentsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // Edit states
   const [editStudent, setEditStudent] = useState<Student | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editFormData, setEditFormData] = useState({

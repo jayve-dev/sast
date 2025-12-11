@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import React from "react";
-import { AdminAdd } from "@/components/admin/admin-add";
+import { UserAdd } from "@/components/student/user-add";
 
 interface Users {
   id: string;
@@ -57,7 +57,7 @@ export default function AdminPage() {
               {/* <Button variant={"secondary"}> Add Account </Button> */}
             </div>
             {/*<Button variant={'secondary'}> Add Account </Button>*/}
-            <AdminAdd />
+            <UserAdd />
           </div>
 
           <div className='mt-8  '>

@@ -15,7 +15,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-const StudentAdd = () => {
+interface StudentAddProps {
+  onSuccess?: () => void;
+}
+
+const StudentAdd = ({ onSuccess }: StudentAddProps) => {
   const [isLoading, setLoading] = useState(false);
   const [programs, setPrograms] = useState<{ id: string; name: string }[]>([]);
   const [sections, setSections] = useState<{ id: string; name: string }[]>([]);
