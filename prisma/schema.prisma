@@ -80,7 +80,7 @@ model Teacher {
   fullName  String
   createdAt DateTime           @default(now())
   responses Response[]
-  assigns   TeachersAssigned[]
+  assigns   TeachersAssigned[] @relation("TeacherAssignments")
 }
 
 model Course {
@@ -125,7 +125,7 @@ model TeachersAssigned {
   Course      Course     @relation(fields: [courseId], references: [id])
   Program     Program    @relation(fields: [programId], references: [id])
   Section     Section    @relation(fields: [sectionId], references: [id])
-  Teacher     Teacher    @relation(fields: [teacherId], references: [id])
+  Teacher     Teacher    @relation("TeacherAssignments", fields: [teacherId], references: [id])
 }
 
 enum QuestionType {

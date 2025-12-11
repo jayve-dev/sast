@@ -4,8 +4,10 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { facultyId, fullName, } = body;
+    const { facultyId, fullName } = body;
+
     console.log("DATABASE_URL", process.env.DATABASE_URL);
+
     const isIdNumberExisting = await prisma.teacher.findUnique({
       where: {
         facultyId: Number(facultyId),
@@ -16,7 +18,7 @@ export async function POST(request: Request) {
       console.error("This ID number is already in use");
       return NextResponse.json(
         { message: "This ID number is already in use" },
-        { status: 500 }
+        { status: 400 }
       );
     }
 
@@ -24,7 +26,7 @@ export async function POST(request: Request) {
       data: {
         facultyId: Number(facultyId),
         fullName,
-      }
+      },
     });
 
     if (!newUser) {
@@ -39,24 +41,39 @@ export async function POST(request: Request) {
       );
     }
 
-    return new Response(JSON.stringify(newUser), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json(newUser, { status: 201 });
   } catch (error) {
     console.error(error);
-    return new Response(
-      JSON.stringify({ message: "Error creating user", error }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+    return NextResponse.json(
+      { message: "Error creating user", error },
+      { status: 500 }
     );
   }
 }
 
 export async function GET() {
   try {
-    const teachers = await prisma.teacher.findMany();
+    const teachers = await prisma.teacher.findMany({
+      include: {
+        assigns: {
+          include: {
+            Course: true,
+            Section: true,
+            Program: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
     return NextResponse.json(teachers, { status: 200 });
   } catch (error) {
+    console.error("Failed to fetch teachers:", error);
     return NextResponse.json(
       { message: "Failed to fetch the teachers", error },
       { status: 500 }
