@@ -59,9 +59,9 @@ const SignInForm = () => {
     } else {
       console.log("Login successful");
       if (session?.user?.role === "ADMIN") {
-        router.push("dashboard");
+        router.push("/dashboard");
       } else {
-        router.push("survey");
+        router.push("/assessment");
       }
       setIsLoading(false);
     }

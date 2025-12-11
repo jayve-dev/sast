@@ -1,113 +1,112 @@
 "use client";
+
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
-interface AssessmentSelection {
-  programId: string | null;
-  sectionId: string | null;
-  courseId: string | null;
-  instructorId: string | null;
-  assignmentId: string | null;
+export interface AssessmentSelection {
+  programId: string;
+  programName: string;
+  sectionId: string;
+  sectionName: string;
+  courseId: string;
+  courseName: string;
+  instructorId: string;
+  instructorName: string;
+  assignmentId: string;
+  studentId: string;
+  studentName?: string;
 }
 
 interface AssessmentContextType {
   selection: AssessmentSelection;
+  updateSelection: (data: Partial<AssessmentSelection>) => void;
+  resetSelection: () => void;
+  currentStep: number;
+  setCurrentStep: (step: number) => void;
   setProgram: (programId: string) => void;
   setSection: (sectionId: string) => void;
   setCourse: (courseId: string) => void;
   setInstructor: (instructorId: string, assignmentId: string) => void;
-  resetSelection: () => void;
-  currentStep: number;
-  setCurrentStep: (step: number) => void;
 }
+
+const initialSelection: AssessmentSelection = {
+  programId: "",
+  programName: "",
+  sectionId: "",
+  sectionName: "",
+  courseId: "",
+  courseName: "",
+  instructorId: "",
+  instructorName: "",
+  assignmentId: "",
+  studentId: "",
+  studentName: "",
+};
 
 const AssessmentContext = createContext<AssessmentContextType | undefined>(
   undefined
 );
 
-export const useAssessment = () => {
-  const context = useContext(AssessmentContext);
-  if (!context) {
-    throw new Error("useAssessment must be used within AssessmentProvider");
-  }
-  return context;
-};
-
-export const AssessmentProvider = ({ children }: { children: ReactNode }) => {
-  const [selection, setSelection] = useState<AssessmentSelection>({
-    programId: null,
-    sectionId: null,
-    courseId: null,
-    instructorId: null,
-    assignmentId: null,
-  });
+export function AssessmentProvider({ children }: { children: ReactNode }) {
+  const [selection, setSelection] =
+    useState<AssessmentSelection>(initialSelection);
   const [currentStep, setCurrentStep] = useState(1);
 
+  const updateSelection = (data: Partial<AssessmentSelection>) => {
+    setSelection((prev) => ({ ...prev, ...data }));
+  };
+
+  const resetSelection = () => {
+    setSelection((prev) => ({
+      ...initialSelection,
+      studentId: prev.studentId, // Keep studentId when resetting
+      studentName: prev.studentName, // Keep studentName when resetting
+    }));
+    setCurrentStep(1);
+  };
+
   const setProgram = (programId: string) => {
-    setSelection({
-      programId,
-      sectionId: null,
-      courseId: null,
-      instructorId: null,
-      assignmentId: null,
-    });
+    updateSelection({ programId });
     setCurrentStep(2);
   };
 
   const setSection = (sectionId: string) => {
-    setSelection((prev) => ({
-      ...prev,
-      sectionId,
-      courseId: null,
-      instructorId: null,
-      assignmentId: null,
-    }));
+    updateSelection({ sectionId });
     setCurrentStep(3);
   };
 
   const setCourse = (courseId: string) => {
-    setSelection((prev) => ({
-      ...prev,
-      courseId,
-      instructorId: null,
-      assignmentId: null,
-    }));
+    updateSelection({ courseId });
     setCurrentStep(4);
   };
 
   const setInstructor = (instructorId: string, assignmentId: string) => {
-    setSelection((prev) => ({
-      ...prev,
-      instructorId,
-      assignmentId,
-    }));
+    updateSelection({ instructorId, assignmentId });
     setCurrentStep(5);
-  };
-
-  const resetSelection = () => {
-    setSelection({
-      programId: null,
-      sectionId: null,
-      courseId: null,
-      instructorId: null,
-      assignmentId: null,
-    });
-    setCurrentStep(1);
   };
 
   return (
     <AssessmentContext.Provider
       value={{
         selection,
+        updateSelection,
+        resetSelection,
+        currentStep,
+        setCurrentStep,
         setProgram,
         setSection,
         setCourse,
         setInstructor,
-        resetSelection,
-        currentStep,
-        setCurrentStep,
       }}
     >
       {children}
     </AssessmentContext.Provider>
   );
-};
+}
+
+export function useAssessment() {
+  const context = useContext(AssessmentContext);
+  if (context === undefined) {
+    throw new Error("useAssessment must be used within an AssessmentProvider");
+  }
+  return context;
+}

@@ -58,7 +58,35 @@ export default function StudentSurveyPage({
       }
 
       const data = await response.json();
-      setCategories(Array.isArray(data) ? data : []);
+
+      console.log("Fetched data:", data); // Debug log
+
+      // Transform the data to match the expected format
+      const transformedCategories = Array.isArray(data)
+        ? data.map((category: any) => ({
+            id: category.id,
+            name: category.name,
+            description: category.description,
+            questions: Array.isArray(category.questions)
+              ? category.questions.map((q: any) => ({
+                  id: q.id,
+                  text: q.text,
+                  categoryId: q.categoryId || category.id,
+                  options: Array.isArray(q.options)
+                    ? q.options.map((opt: any) => ({
+                        id: opt.id,
+                        text: opt.text,
+                        value: opt.value,
+                      }))
+                    : [],
+                }))
+              : [],
+          }))
+        : [];
+
+      console.log("Transformed categories:", transformedCategories); // Debug log
+
+      setCategories(transformedCategories);
     } catch (error) {
       console.error("Error fetching survey:", error);
       toast.error("Failed to load survey questions");
@@ -112,6 +140,13 @@ export default function StudentSurveyPage({
       return;
     }
 
+    // Validate studentId exists
+    if (!selection.studentId) {
+      toast.error("Student information not found. Please refresh the page.");
+      console.error("Missing studentId in selection:", selection);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -120,11 +155,14 @@ export default function StudentSurveyPage({
         programId: selection.programId,
         sectionId: selection.sectionId,
         courseId: selection.courseId,
+        studentId: selection.studentId,
         responses: Object.entries(answers).map(([questionId, optionId]) => ({
           questionId,
           optionId,
         })),
       };
+
+      console.log("Submitting payload:", payload); // Debug log
 
       const response = await fetch("/api/create/student/submit-assessment", {
         method: "POST",
@@ -132,13 +170,24 @@ export default function StudentSurveyPage({
         body: JSON.stringify(payload),
       });
 
+      // Check if response is JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.error("Response is not JSON:", text);
+        throw new Error("Server returned invalid response");
+      }
+
       const result = await response.json();
 
       if (!response.ok) {
         throw new Error(result.message || "Failed to submit assessment");
       }
 
-      toast.success("Assessment submitted successfully!");
+      // Clear answers before going back
+      setAnswers({});
+
+      // Call onComplete which will reset and go back to step 1
       onComplete();
     } catch (error) {
       console.error("Submit error:", error);
@@ -180,7 +229,7 @@ export default function StudentSurveyPage({
   }
 
   return (
-    <div className='min-h-screen w-full bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8'>
+    <div className='min-h-screen w-full bg-lineat-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8'>
       <div className='max-w-4xl mx-auto'>
         {/* Header */}
         <div className='bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6'>
@@ -225,65 +274,77 @@ export default function StudentSurveyPage({
           </div>
 
           <div className='space-y-8'>
-            {currentCategory.questions.map((question, index) => (
-              <div
-                key={question.id}
-                className='pb-8 border-b border-gray-200 last:border-0 last:pb-0'
-              >
-                <div className='flex gap-3 mb-4'>
-                  <span className='shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center font-semibold text-sm'>
-                    {index + 1}
-                  </span>
-                  <h3 className='text-lg font-semibold text-gray-800 flex-1'>
-                    {question.text}
-                  </h3>
-                  {answers[question.id] && (
-                    <Check className='w-5 h-5 text-green-500 shrink-0' />
-                  )}
-                </div>
+            {currentCategory.questions.length > 0 ? (
+              currentCategory.questions.map((question, index) => (
+                <div
+                  key={question.id}
+                  className='pb-8 border-b border-gray-200 last:border-0 last:pb-0'
+                >
+                  <div className='flex gap-3 mb-4'>
+                    <span className='shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center font-semibold text-sm'>
+                      {index + 1}
+                    </span>
+                    <h3 className='text-lg font-semibold text-gray-800 flex-1'>
+                      {question.text}
+                    </h3>
+                    {answers[question.id] && (
+                      <Check className='w-5 h-5 text-green-500 shrink-0' />
+                    )}
+                  </div>
 
-                {/* Rating Options */}
-                <div className='ml-11 space-y-2'>
-                  {question.options
-                    .sort((a, b) => b.value - a.value) // Sort by value descending (5 to 1)
-                    .map((option) => (
-                      <label
-                        key={option.id}
-                        className={`flex items-center p-4 rounded-xl cursor-pointer transition-all border-2 ${
-                          answers[question.id] === option.id
-                            ? "border-indigo-500 bg-indigo-50 shadow-md"
-                            : "border-gray-200 bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200"
-                        }`}
-                      >
-                        <input
-                          type='radio'
-                          name={question.id}
-                          value={option.id}
-                          checked={answers[question.id] === option.id}
-                          onChange={(e) =>
-                            handleAnswer(question.id, e.target.value)
-                          }
-                          className='w-5 h-5 text-indigo-600 focus:ring-indigo-500'
-                        />
-                        <div className='ml-3 flex-1 flex items-center justify-between'>
-                          <span className='text-gray-700 font-medium'>
-                            {option.text}
-                          </span>
-                          <span
-                            className={`text-sm font-semibold px-2.5 py-1 rounded-full ${
+                  {/* Rating Options */}
+                  <div className='ml-11 space-y-2'>
+                    {question.options && question.options.length > 0 ? (
+                      question.options
+                        .sort((a, b) => b.value - a.value) // Sort by value descending (5 to 1)
+                        .map((option) => (
+                          <label
+                            key={option.id}
+                            className={`flex items-center p-4 rounded-xl cursor-pointer transition-all border-2 ${
                               answers[question.id] === option.id
-                                ? "bg-indigo-500 text-white"
-                                : "bg-gray-200 text-gray-600"
+                                ? "border-indigo-500 bg-indigo-50 shadow-md"
+                                : "border-gray-200 bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200"
                             }`}
                           >
-                            {option.value}
-                          </span>
-                        </div>
-                      </label>
-                    ))}
+                            <input
+                              type='radio'
+                              name={question.id}
+                              value={option.id}
+                              checked={answers[question.id] === option.id}
+                              onChange={(e) =>
+                                handleAnswer(question.id, e.target.value)
+                              }
+                              className='w-5 h-5 text-indigo-600 focus:ring-indigo-500'
+                            />
+                            <div className='ml-3 flex-1 flex items-center justify-between'>
+                              <span className='text-gray-700 font-medium'>
+                                {option.text}
+                              </span>
+                              <span
+                                className={`text-sm font-semibold px-2.5 py-1 rounded-full ${
+                                  answers[question.id] === option.id
+                                    ? "bg-indigo-500 text-white"
+                                    : "bg-gray-200 text-gray-600"
+                                }`}
+                              >
+                                {option.value}
+                              </span>
+                            </div>
+                          </label>
+                        ))
+                    ) : (
+                      <p className='text-sm text-red-500'>
+                        No options available for this question
+                      </p>
+                    )}
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className='text-center text-gray-500 py-8'>
+                No questions available in this category
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -341,14 +402,21 @@ export default function StudentSurveyPage({
           <div className='flex items-center justify-between text-sm'>
             <span className='text-gray-600'>Progress</span>
             <span className='font-semibold text-gray-800'>
-              {Math.round((answeredQuestions / totalQuestions) * 100)}%
+              {totalQuestions > 0
+                ? Math.round((answeredQuestions / totalQuestions) * 100)
+                : 0}
+              %
             </span>
           </div>
           <div className='mt-2 h-2 bg-gray-200 rounded-full overflow-hidden'>
             <div
               className='h-full bg-green-500 rounded-full transition-all duration-300'
               style={{
-                width: `${(answeredQuestions / totalQuestions) * 100}%`,
+                width: `${
+                  totalQuestions > 0
+                    ? (answeredQuestions / totalQuestions) * 100
+                    : 0
+                }%`,
               }}
             />
           </div>
