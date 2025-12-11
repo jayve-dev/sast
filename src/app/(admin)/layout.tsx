@@ -28,7 +28,7 @@ export default async function AuthLayout({
   if (!session) {
     redirect("/signin");
   } else if (session.user.role !== "ADMIN") {
-    redirect("/survey");
+    redirect("/assessment");
   }
 
   return (
