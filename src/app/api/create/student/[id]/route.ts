@@ -4,9 +4,10 @@ import bcrypt from "bcryptjs";
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const { id } = params;
 
     if (!id) {
@@ -61,9 +62,10 @@ export async function DELETE(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const { id } = params;
     const body = await req.json();
     const { idNumber, fullName, programId, sectionId, password } = body;
@@ -93,7 +95,7 @@ export async function PATCH(
     // Check if new ID number is already taken
     if (idNumber && idNumber !== student.idNumber) {
       const existingStudent = await prisma.student.findUnique({
-        where: { idNumber },
+        where: { idNumber: Number(idNumber) },
       });
 
       if (existingStudent && existingStudent.id !== id) {
@@ -112,7 +114,7 @@ export async function PATCH(
       sectionId?: string;
     } = {};
 
-    if (idNumber) studentUpdateData.idNumber = idNumber;
+    if (idNumber) studentUpdateData.idNumber = Number(idNumber);
     if (fullName) studentUpdateData.fullName = fullName;
     if (programId) studentUpdateData.programId = programId;
     if (sectionId) studentUpdateData.sectionId = sectionId;
@@ -135,7 +137,7 @@ export async function PATCH(
         password?: string;
       } = {};
 
-      if (idNumber) userUpdateData.idNumber = idNumber;
+      if (idNumber) userUpdateData.idNumber = Number(idNumber);
       if (fullName) userUpdateData.fullName = fullName;
 
       // Only hash and update password if provided

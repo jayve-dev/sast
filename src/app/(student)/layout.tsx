@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
-import { Header } from "@/components/header";
+import { Header } from "@/components/student-side/side-bar/student-side-header";
 import { auth } from "../../../lib/auth";
 import { redirect } from "next/navigation";
 import { SideBar } from "@/components/student-side/side-bar/side-bar";

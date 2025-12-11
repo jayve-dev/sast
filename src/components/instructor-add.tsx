@@ -222,7 +222,7 @@ const InstructorAdd = () => {
 
   return (
     <div>
-      <AddModal title='Add Instructor' triggerText='Add Instructor'>
+      <AddModal title='Add Instructor' triggerText='Add Instructor' className="bg-black text-white px-4 py-1 rounded-md">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
             <div className='space-y-2'>

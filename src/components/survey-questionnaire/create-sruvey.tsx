@@ -1,7 +1,6 @@
 "use client";
-import Link from "next/link";
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,37 +18,62 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
-import { Plus, X, CheckCircle2 } from "lucide-react";
+import { Plus, X, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Question {
   id: string;
-  category: string;
+  categoryId: string;
   text: string;
 }
 
-const questionCategories = [
-  "Teaching Effectiveness",
-  "Course Organization",
-  "Student Engagement",
-  "Assessment",
-  "Learning Environment",
-];
+interface Category {
+  id: string;
+  name: string;
+  description: string | null;
+}
 
-export function CreateSurveyForm() {
-  const router = useRouter();
+interface CreateSurveyFormProps {
+  onSuccess: () => void;
+  onCancel: () => void;
+}
+
+export function CreateSurveyForm({
+  onSuccess,
+  onCancel,
+}: CreateSurveyFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [questions, setQuestions] = useState<Question[]>([
-    { id: "1", category: "Teaching Effectiveness", text: "" },
+    { id: "1", categoryId: "", text: "" },
   ]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("/api/create/category");
+      if (!response.ok) {
+        throw new Error("Failed to fetch categories");
+      }
+      const data = await response.json();
+      setCategories(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      toast.error("Failed to load categories");
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
   const addQuestion = () => {
     const newId = (questions.length + 1).toString();
     setQuestions([
       ...questions,
-      { id: newId, category: "Teaching Effectiveness", text: "" },
+      { id: newId, categoryId: categories[0]?.id || "", text: "" },
     ]);
   };
 
@@ -68,10 +92,12 @@ export function CreateSurveyForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const emptyQuestions = questions.filter((q) => !q.text.trim());
+    const emptyQuestions = questions.filter(
+      (q) => !q.text.trim() || !q.categoryId
+    );
     if (emptyQuestions.length > 0) {
       toast.error("Incomplete Questions", {
-        description: "Please fill in all question texts.",
+        description: "Please fill in all question texts and select categories.",
       });
       return;
     }
@@ -98,42 +124,61 @@ export function CreateSurveyForm() {
               <CheckCircle2 className='h-4 w-4 text-green-500' />
               <span>{result.questionsCreated} questions created</span>
             </div>
-            <div className='flex items-center gap-2'>
-              <CheckCircle2 className='h-4 w-4 text-green-500' />
-              <span>
-                Auto-assigned to {result.assignedTo} teacher assignments
-              </span>
-            </div>
           </div>
         ),
       });
 
-      setQuestions([{ id: "1", category: "Teaching Effectiveness", text: "" }]);
-
-      setTimeout(() => {
-        router.push("/questionnaire");
-      }, 2000);
+      setQuestions([
+        { id: "1", categoryId: categories[0]?.id || "", text: "" },
+      ]);
+      onSuccess();
     } catch (error) {
       console.error("Submit error:", error);
-      const errorMessage = error instanceof Error ? error : new Error("Unknown error");
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       toast.error("Error", {
-        description: errorMessage.message,
+        description: errorMessage,
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (loadingCategories) {
+    return (
+      <div className='flex items-center justify-center p-12'>
+        <div className='text-center space-y-4'>
+          <Loader2 className='w-8 h-8 animate-spin mx-auto text-primary' />
+          <p className='text-muted-foreground'>Loading categories...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (categories.length === 0) {
+    return (
+      <div className='flex items-center justify-center p-12'>
+        <div className='text-center space-y-4'>
+          <p className='text-muted-foreground'>
+            No categories available. Please create a category first.
+          </p>
+          <Button onClick={onCancel} variant='outline'>
+            Close
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className='space-y-6 w-full'>
+    <form onSubmit={handleSubmit} className='space-y-6'>
       <Card>
         <CardHeader>
           <div className='flex items-center justify-between'>
             <div>
               <CardTitle>Survey Questions</CardTitle>
               <CardDescription>
-                Add questions for evaluation. Survey will be automatically
-                assigned to all teachers.
+                Add questions for evaluation survey
               </CardDescription>
             </div>
             <Button
@@ -172,18 +217,18 @@ export function CreateSurveyForm() {
               <div className='space-y-2'>
                 <Label htmlFor={`category-${question.id}`}>Category</Label>
                 <Select
-                  value={question.category}
+                  value={question.categoryId}
                   onValueChange={(value) =>
-                    updateQuestion(question.id, "category", value)
+                    updateQuestion(question.id, "categoryId", value)
                   }
                 >
                   <SelectTrigger id={`category-${question.id}`}>
-                    <SelectValue />
+                    <SelectValue placeholder='Select a category' />
                   </SelectTrigger>
                   <SelectContent>
-                    {questionCategories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -218,11 +263,9 @@ export function CreateSurveyForm() {
       </Card>
 
       <div className='flex items-center justify-end gap-4'>
-        <Link href='/questionnaire'>
-          <Button type='button' variant='outline'>
-            Cancel
-          </Button>
-        </Link>
+        <Button type='button' variant='outline' onClick={onCancel}>
+          Cancel
+        </Button>
         <Button type='submit' disabled={isSubmitting}>
           {isSubmitting ? "Creating..." : "Create Survey"}
         </Button>

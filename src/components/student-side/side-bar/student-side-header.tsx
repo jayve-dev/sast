@@ -1,10 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import { NavBar } from "./nav-bar";
+import { NavBar } from "@/components/nav-bar";
 import { FaHamburger } from "react-icons/fa";
-import { RoleLabel } from "./role-label";
-import { SidebarTrigger } from "./ui/sidebar";
+import { RoleLabel } from "@/components/role-label";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,7 +26,6 @@ const Header = () => {
 
       {/* desktop view */}
       <div className="flex gap-10 items-center justify-center">
-        <SidebarTrigger />
         {/* <div className='hidden sm:flex w-fit h-fit hover:scale-105 transition-transform duration-200 bg-red-500 rounded-sm px-3 py-1'>
           <LogoutModal/>
         </div> */}
