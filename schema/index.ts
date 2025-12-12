@@ -38,7 +38,6 @@ export const CreateStudentSchema = z.object({
   }),
 
   programId: z.string().uuid("Please select a valid Program"),
-  sectionId: z.string().uuid("Please select a valid Section"),
 })
 
 export const CreateInstructorSchema = z.object({

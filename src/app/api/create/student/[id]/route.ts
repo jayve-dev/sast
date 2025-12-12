@@ -68,7 +68,7 @@ export async function PATCH(
     const params = await context.params;
     const { id } = params;
     const body = await req.json();
-    const { idNumber, fullName, programId, sectionId, password } = body;
+    const { idNumber, fullName, programId, password } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -111,13 +111,11 @@ export async function PATCH(
       idNumber?: number;
       fullName?: string;
       programId?: string;
-      sectionId?: string;
     } = {};
 
     if (idNumber) studentUpdateData.idNumber = Number(idNumber);
     if (fullName) studentUpdateData.fullName = fullName;
     if (programId) studentUpdateData.programId = programId;
-    if (sectionId) studentUpdateData.sectionId = sectionId;
 
     // Update the student
     const updatedStudent = await prisma.student.update({
@@ -125,7 +123,6 @@ export async function PATCH(
       data: studentUpdateData,
       include: {
         program: true,
-        section: true,
       },
     });
 

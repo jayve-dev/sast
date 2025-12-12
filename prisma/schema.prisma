@@ -68,8 +68,6 @@ model Student {
   fullName  String
   programId  String
   program    Program   @relation(fields: [programId], references: [id])
-  sectionId String
-  section   Section  @relation(fields: [sectionId], references: [id])
   createdAt DateTime @default(now())
   User      User?
 }
@@ -111,7 +109,6 @@ model Course {
 model Section {
   id        String             @id @default(uuid())
   name      String
-  student   Student[]
   programId String
   Program   Program            @relation(fields: [programId], references: [id])
   courses   Course[]

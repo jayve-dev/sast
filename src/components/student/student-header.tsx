@@ -45,11 +45,6 @@ export function StudentHeader() {
             <StudentAdd onSuccess={() => setOpen(false)} />
           </DialogContent>
         </Dialog>
-
-        <button className='flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors'>
-          <span>Filter</span>
-          <ChevronDown className='w-4 h-4' />
-        </button>
       </div>
     </div>
   );

@@ -22,14 +22,12 @@ interface StudentAddProps {
 const StudentAdd = ({ onSuccess }: StudentAddProps) => {
   const [isLoading, setLoading] = useState(false);
   const [programs, setPrograms] = useState<{ id: string; name: string }[]>([]);
-  const [sections, setSections] = useState<{ id: string; name: string }[]>([]);
 
   const form = useForm({
     resolver: zodResolver(CreateStudentSchema),
     defaultValues: {
       idNumber: "",
       fullName: "",
-      sectionId: "",
       programId: "",
     },
   });
@@ -41,15 +39,6 @@ const StudentAdd = ({ onSuccess }: StudentAddProps) => {
       setPrograms(data);
     };
     fetchPrograms();
-  }, []);
-
-  useEffect(() => {
-    const fetchSections = async () => {
-      const res = await fetch("/api/create/department/section");
-      const data = await res.json();
-      setSections(data);
-    };
-    fetchSections();
   }, []);
 
   const onSubmit = async (data: z.infer<typeof CreateStudentSchema>) => {
@@ -133,32 +122,6 @@ const StudentAdd = ({ onSuccess }: StudentAddProps) => {
                       {programs.map((program) => (
                         <option key={program.id} value={program.id}>
                           {program.name}
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='sectionId'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Section</FormLabel>
-                  <FormControl>
-                    <select
-                      {...field}
-                      className='w-full p-2 border rounded'
-                      defaultValue=''
-                    >
-                      <option value='' disabled>
-                        Select Section
-                      </option>
-                      {sections.map((section) => (
-                        <option key={section.id} value={section.id}>
-                          {section.name}
                         </option>
                       ))}
                     </select>
