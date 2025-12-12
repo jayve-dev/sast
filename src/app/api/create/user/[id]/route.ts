@@ -95,6 +95,14 @@ export async function PATCH(
       );
     }
 
+    // Validate required fields
+    if (!idNumber || !fullName) {
+      return NextResponse.json(
+        { message: "ID number and full name are required" },
+        { status: 400 }
+      );
+    }
+
     // Check if user exists
     const user = await prisma.user.findUnique({
       where: { id },
@@ -112,29 +120,64 @@ export async function PATCH(
       );
     }
 
-    // Check if new ID number is already taken
-    if (idNumber && idNumber !== user.idNumber) {
+    const idNumberInt = Number(idNumber);
+
+    // Check if the new ID number exists in Student table
+    const studentRecord = await prisma.student.findUnique({
+      where: { idNumber: idNumberInt },
+    });
+
+    if (!studentRecord) {
+      return NextResponse.json(
+        {
+          message:
+            "This ID number is not found in our student records. Please contact the administrator.",
+        },
+        { status: 404 }
+      );
+    }
+
+    // Check if full name matches the ID number in Student table
+    if (studentRecord.fullName.toLowerCase() !== fullName.toLowerCase()) {
+      return NextResponse.json(
+        {
+          message:
+            "The name does not match our student records for this ID number.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Check if new ID number is already taken by another user
+    if (idNumberInt !== user.idNumber) {
       const existingUser = await prisma.user.findUnique({
-        where: { idNumber: Number(idNumber) },
+        where: { idNumber: idNumberInt },
       });
 
       if (existingUser && existingUser.id !== id) {
         return NextResponse.json(
-          { message: "ID number already in use" },
-          { status: 400 }
+          {
+            message:
+              "An account with this ID number already exists. Please use a different ID number.",
+          },
+          { status: 409 }
         );
       }
     }
 
     // Prepare update data
     const updateData: {
-      idNumber?: number;
-      fullName?: string;
+      idNumber: number;
+      fullName: string;
       password?: string;
-    } = {};
+      studentId: string;
+    } = {
+      idNumber: idNumberInt,
+      fullName: studentRecord.fullName, // Use the name from Student table to ensure consistency
+      studentId: studentRecord.id,
+    };
 
-    if (idNumber) updateData.idNumber = Number(idNumber);
-    if (fullName) updateData.fullName = fullName;
+    // Only update password if provided
     if (password && password.trim()) {
       updateData.password = await bcrypt.hash(password, 10);
     }

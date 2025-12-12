@@ -24,7 +24,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Edit, Eye, EyeOff } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Edit, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 const editUserSchema = z.object({
   idNumber: z.string().min(1, "ID number is required"),
@@ -47,6 +48,7 @@ export function UserEdit({ user }: UserEditProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(editUserSchema),
@@ -59,6 +61,7 @@ export function UserEdit({ user }: UserEditProps) {
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
+    setError(null);
 
     try {
       const payload: any = {
@@ -80,18 +83,33 @@ export function UserEdit({ user }: UserEditProps) {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to update user");
+        if (response.status === 404) {
+          setError(result.message || "ID number not found in student records");
+        } else if (response.status === 400) {
+          setError(result.message || "Name does not match student records");
+        } else if (response.status === 409) {
+          setError(result.message || "ID number already in use");
+        } else {
+          throw new Error(result.message || "Failed to update user");
+        }
+        setIsLoading(false);
+        return;
       }
 
       toast.success("User updated successfully");
       setOpen(false);
-      form.reset();
+      form.reset({
+        idNumber: result.user.idNumber.toString(),
+        fullName: result.user.fullName,
+        password: "",
+      });
+      setError(null);
       router.refresh();
     } catch (error) {
       console.error("Update error:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Failed to update user";
-      toast.error(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -109,13 +127,20 @@ export function UserEdit({ user }: UserEditProps) {
         <DialogHeader>
           <DialogTitle>Edit User</DialogTitle>
           <DialogDescription>
-            Update user information. Leave password blank to keep current
-            password.
+            Update user information. ID number and name must match student
+            records.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+            {error && (
+              <Alert variant='destructive'>
+                <AlertCircle className='h-4 w-4' />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
             <FormField
               control={form.control}
               name='idNumber'
@@ -185,11 +210,27 @@ export function UserEdit({ user }: UserEditProps) {
               )}
             />
 
+            <div className='text-sm text-muted-foreground bg-blue-50 p-3 rounded-lg'>
+              <p className='font-medium text-blue-900 mb-1'>Note:</p>
+              <p className='text-blue-800'>
+                The ID number and name must match our student records. Leave
+                password blank to keep the current password.
+              </p>
+            </div>
+
             <div className='flex justify-end gap-2 pt-4'>
               <Button
                 type='button'
                 variant='outline'
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  setError(null);
+                  form.reset({
+                    idNumber: user.idNumber.toString(),
+                    fullName: user.fullName,
+                    password: "",
+                  });
+                }}
                 disabled={isLoading}
               >
                 Cancel

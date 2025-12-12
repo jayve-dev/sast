@@ -25,6 +25,8 @@ const SignUpForm = () => {
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isShowPassword, setIsShowPassword] = useState(false);
+  const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(SignUpSchema),
@@ -36,8 +38,6 @@ const SignUpForm = () => {
     },
   });
 
-  const [isShowPassword, setIsShowPassword] = useState(false);
-  const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
 
   const onSubmit = async (data: z.infer<typeof SignUpSchema>) => {
     setLoading(true);

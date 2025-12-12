@@ -342,7 +342,7 @@ export default function ResponsesPage() {
                   placeholder='Search...'
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className='pl-9'
+                  className='pl-9 w-full'
                 />
               </div>
 
@@ -350,7 +350,7 @@ export default function ResponsesPage() {
                 value={selectedProgram}
                 onValueChange={setSelectedProgram}
               >
-                <SelectTrigger>
+                <SelectTrigger className='w-full'>
                   <SelectValue placeholder='Program'/>
                 </SelectTrigger>
                 <SelectContent>
@@ -367,7 +367,7 @@ export default function ResponsesPage() {
                 value={selectedSection}
                 onValueChange={setSelectedSection}
               >
-                <SelectTrigger>
+                <SelectTrigger className='w-full'> 
                   <SelectValue placeholder='Section' />
                 </SelectTrigger>
                 <SelectContent>
@@ -390,7 +390,7 @@ export default function ResponsesPage() {
               </Select>
 
               <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                <SelectTrigger>
+                <SelectTrigger className='w-full'>
                   <SelectValue placeholder='Course' />
                 </SelectTrigger>
                 <SelectContent>
@@ -407,7 +407,7 @@ export default function ResponsesPage() {
                 value={selectedTeacher}
                 onValueChange={setSelectedTeacher}
               >
-                <SelectTrigger>
+                <SelectTrigger className='w-full'>
                   <SelectValue placeholder='Teacher' />
                 </SelectTrigger>
                 <SelectContent>
