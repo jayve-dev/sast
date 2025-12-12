@@ -4,7 +4,6 @@ import "../globals.css";
 import { Header } from "@/components/header";
 import { auth } from "../../../lib/auth";
 import { redirect } from "next/navigation";
-import { SessionProvider } from "next-auth/react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/ui/side-bar/admin-app-sidebar";
 
@@ -28,7 +27,7 @@ export default async function AuthLayout({
   if (!session) {
     redirect("/signin");
   } else if (session.user.role !== "ADMIN") {
-    redirect("/survey");
+    redirect("/assessment");
   }
 
   return (
@@ -43,7 +42,6 @@ export default async function AuthLayout({
       <div
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen overflow-x-hidden`}
       >
-        <SessionProvider session={session}>
           <div className='w-full h-dvh flex flex-row items-center justify-center p-5 text-[#EEEEEE]'>
             {/* <SideBar /> */}
             <AppSidebar />
@@ -52,7 +50,6 @@ export default async function AuthLayout({
               {children}
             </div>
           </div>
-        </SessionProvider>
       </div>
     </SidebarProvider>
   );

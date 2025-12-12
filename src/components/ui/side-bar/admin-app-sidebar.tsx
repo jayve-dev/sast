@@ -1,11 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  Bot,
-  LayoutDashboard,
-  NotepadText,
-} from "lucide-react";
+import { Bot, FileText, LayoutDashboard, NotepadText } from "lucide-react";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import {
@@ -53,6 +49,11 @@ const data = {
       title: "Reports",
       href: "/reports",
       icon: NotepadText,
+    },
+    {
+      title: "Student Responses",
+      href: "/responses",
+      icon: FileText,
     },
   ],
 };

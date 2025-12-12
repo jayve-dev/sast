@@ -1,12 +1,75 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../../lib/db";
+import { auth } from "../../../../../../lib/auth";
 import bcrypt from "bcryptjs";
+
+export async function GET(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+
+    if (!session) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const params = await context.params;
+    const { id } = params;
+
+    if (!id) {
+      return NextResponse.json(
+        { message: "Student ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { id },
+      include: {
+        program: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        User: {
+          select: {
+            id: true,
+            idNumber: true,
+            fullName: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!student) {
+      return NextResponse.json(
+        { message: "Student not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(student);
+  } catch (error) {
+    console.error("Error fetching student:", error);
+    return NextResponse.json(
+      {
+        message: "Failed to fetch student data",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const { id } = params;
 
     if (!id) {
@@ -61,12 +124,13 @@ export async function DELETE(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const { id } = params;
     const body = await req.json();
-    const { idNumber, fullName, programId, sectionId, password } = body;
+    const { idNumber, fullName, programId, password } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -93,7 +157,7 @@ export async function PATCH(
     // Check if new ID number is already taken
     if (idNumber && idNumber !== student.idNumber) {
       const existingStudent = await prisma.student.findUnique({
-        where: { idNumber },
+        where: { idNumber: Number(idNumber) },
       });
 
       if (existingStudent && existingStudent.id !== id) {
@@ -109,13 +173,11 @@ export async function PATCH(
       idNumber?: number;
       fullName?: string;
       programId?: string;
-      sectionId?: string;
     } = {};
 
-    if (idNumber) studentUpdateData.idNumber = idNumber;
+    if (idNumber) studentUpdateData.idNumber = Number(idNumber);
     if (fullName) studentUpdateData.fullName = fullName;
     if (programId) studentUpdateData.programId = programId;
-    if (sectionId) studentUpdateData.sectionId = sectionId;
 
     // Update the student
     const updatedStudent = await prisma.student.update({
@@ -123,7 +185,6 @@ export async function PATCH(
       data: studentUpdateData,
       include: {
         program: true,
-        section: true,
       },
     });
 
@@ -135,7 +196,7 @@ export async function PATCH(
         password?: string;
       } = {};
 
-      if (idNumber) userUpdateData.idNumber = idNumber;
+      if (idNumber) userUpdateData.idNumber = Number(idNumber);
       if (fullName) userUpdateData.fullName = fullName;
 
       // Only hash and update password if provided

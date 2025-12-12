@@ -37,11 +37,14 @@ type Course = {
   id: string;
   code: string;
   name: string;
+  programId: string;
+  sectionId: string;
 };
 
 type Section = {
   id: string;
   name: string;
+  programId: string;
 };
 
 type Assignment = {
@@ -72,8 +75,8 @@ const InstructorAdd = () => {
   const router = useRouter();
   const [isLoading, setLoading] = useState(false);
   const [programs, setPrograms] = useState<Program[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [sections, setSections] = useState<Section[]>([]);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [allSections, setAllSections] = useState<Section[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([
     { id: "1", programId: "", courseId: "", sectionId: "" },
   ]);
@@ -102,8 +105,8 @@ const InstructorAdd = () => {
         const sectionsData = await sectionsRes.json();
 
         setPrograms(Array.isArray(programsData) ? programsData : []);
-        setCourses(Array.isArray(coursesData) ? coursesData : []);
-        setSections(Array.isArray(sectionsData) ? sectionsData : []);
+        setAllCourses(Array.isArray(coursesData) ? coursesData : []);
+        setAllSections(Array.isArray(sectionsData) ? sectionsData : []);
       } catch (error) {
         console.error("Failed to fetch data:", error);
         toast.error("Failed to load form data");
@@ -111,6 +114,28 @@ const InstructorAdd = () => {
     }
     fetchData();
   }, []);
+
+  // Get filtered sections based on selected program
+  const getFilteredSections = (programId: string) => {
+    if (!programId) return [];
+    return allSections.filter((section) => section.programId === programId);
+  };
+
+  // Get filtered courses based on selected program and section
+  const getFilteredCourses = (programId: string, sectionId: string) => {
+    if (!programId) return [];
+
+    // If section is selected, filter by both program and section
+    if (sectionId) {
+      return allCourses.filter(
+        (course) =>
+          course.programId === programId && course.sectionId === sectionId
+      );
+    }
+
+    // Otherwise, just filter by program
+    return allCourses.filter((course) => course.programId === programId);
+  };
 
   const addAssignment = () => {
     const newId = (assignments.length + 1).toString();
@@ -139,6 +164,38 @@ const InstructorAdd = () => {
       currentAssignments.splice(index, 1);
       form.setValue("assignments", currentAssignments);
     }
+  };
+
+  // Handle program change - reset section and course
+  const handleProgramChange = (index: number, programId: string) => {
+    form.setValue(`assignments.${index}.programId`, programId);
+    form.setValue(`assignments.${index}.sectionId`, "");
+    form.setValue(`assignments.${index}.courseId`, "");
+
+    // Update local state
+    const updatedAssignments = [...assignments];
+    updatedAssignments[index] = {
+      ...updatedAssignments[index],
+      programId,
+      sectionId: "",
+      courseId: "",
+    };
+    setAssignments(updatedAssignments);
+  };
+
+  // Handle section change - reset course
+  const handleSectionChange = (index: number, sectionId: string) => {
+    form.setValue(`assignments.${index}.sectionId`, sectionId);
+    form.setValue(`assignments.${index}.courseId`, "");
+
+    // Update local state
+    const updatedAssignments = [...assignments];
+    updatedAssignments[index] = {
+      ...updatedAssignments[index],
+      sectionId,
+      courseId: "",
+    };
+    setAssignments(updatedAssignments);
   };
 
   const onSubmit = async (data: FormData) => {
@@ -222,7 +279,11 @@ const InstructorAdd = () => {
 
   return (
     <div>
-      <AddModal title='Add Instructor' triggerText='Add Instructor'>
+      <AddModal
+        title='Add Instructor'
+        triggerText='Add Instructor'
+        className='bg-black text-white px-4 py-1 rounded-md'
+      >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
             <div className='space-y-2'>
@@ -300,130 +361,178 @@ const InstructorAdd = () => {
               </div>
 
               <div className='space-y-3'>
-                {assignments.map((assignment, index) => (
-                  <Card key={assignment.id} className='border border-border'>
-                    <CardHeader className='pb-3'>
-                      <div className='flex items-center justify-between'>
-                        <Label className='text-sm font-medium'>
-                          Assignment {index + 1}
-                        </Label>
-                        {assignments.length > 1 && (
-                          <Button
-                            type='button'
-                            variant='ghost'
-                            size='sm'
-                            onClick={() => removeAssignment(assignment.id)}
-                            className='h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive'
-                          >
-                            <X className='h-4 w-4' />
-                          </Button>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent className='space-y-4'>
-                      <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
-                        <FormField
-                          control={form.control}
-                          name={`assignments.${index}.programId`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className='text-xs font-medium'>
-                                Program
-                              </FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className='h-10'>
-                                    <SelectValue placeholder='Select program' />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {programs.map((program) => (
-                                    <SelectItem
-                                      key={program.id}
-                                      value={program.id}
-                                    >
-                                      {program.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage className='text-xs' />
-                            </FormItem>
-                          )}
-                        />
+                {assignments.map((assignment, index) => {
+                  const filteredSections = getFilteredSections(
+                    assignment.programId
+                  );
+                  const filteredCourses = getFilteredCourses(
+                    assignment.programId,
+                    assignment.sectionId
+                  );
 
-                        <FormField
-                          control={form.control}
-                          name={`assignments.${index}.courseId`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className='text-xs font-medium'>
-                                Course
-                              </FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className='h-10'>
-                                    <SelectValue placeholder='Select course' />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {courses.map((course) => (
-                                    <SelectItem
-                                      key={course.id}
-                                      value={course.id}
-                                    >
-                                      {course.code} - {course.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage className='text-xs' />
-                            </FormItem>
+                  return (
+                    <Card key={assignment.id} className='border border-border'>
+                      <CardHeader className='pb-3'>
+                        <div className='flex items-center justify-between'>
+                          <Label className='text-sm font-medium'>
+                            Assignment {index + 1}
+                          </Label>
+                          {assignments.length > 1 && (
+                            <Button
+                              type='button'
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => removeAssignment(assignment.id)}
+                              className='h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive'
+                            >
+                              <X className='h-4 w-4' />
+                            </Button>
                           )}
-                        />
+                        </div>
+                      </CardHeader>
+                      <CardContent className=''>
+                        <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+                          {/* Program Select */}
+                          <FormField
+                            control={form.control}
+                            name={`assignments.${index}.programId`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className='text-xs font-medium'>
+                                  Program
+                                </FormLabel>
+                                <Select
+                                  onValueChange={(value) =>
+                                    handleProgramChange(index, value)
+                                  }
+                                  value={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className='h-10 w-full'>
+                                      <SelectValue placeholder='Select program' />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {programs.map((program) => (
+                                      <SelectItem
+                                        key={program.id}
+                                        value={program.id}
+                                      >
+                                        {program.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage className='text-xs' />
+                              </FormItem>
+                            )}
+                          />
 
-                        <FormField
-                          control={form.control}
-                          name={`assignments.${index}.sectionId`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className='text-xs font-medium'>
-                                Section
-                              </FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className='h-10'>
-                                    <SelectValue placeholder='Select section' />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {sections.map((section) => (
-                                    <SelectItem
-                                      key={section.id}
-                                      value={section.id}
-                                    >
-                                      {section.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage className='text-xs' />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                          {/* Section Select - Filtered by Program */}
+                          <FormField
+                            control={form.control}
+                            name={`assignments.${index}.sectionId`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className='text-xs font-medium'>
+                                  Section
+                                </FormLabel>
+                                <Select
+                                  onValueChange={(value) =>
+                                    handleSectionChange(index, value)
+                                  }
+                                  value={field.value}
+                                  disabled={!assignment.programId}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className='h-10 w-full'>
+                                      <SelectValue
+                                        placeholder={
+                                          !assignment.programId
+                                            ? "Select program first"
+                                            : "Select section"
+                                        }
+                                      />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {filteredSections.length > 0 ? (
+                                      filteredSections.map((section) => (
+                                        <SelectItem
+                                          key={section.id}
+                                          value={section.id}
+                                        >
+                                          {section.name}
+                                        </SelectItem>
+                                      ))
+                                    ) : (
+                                      <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                        No sections available
+                                      </div>
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage className='text-xs' />
+                              </FormItem>
+                            )}
+                          />
+
+                          {/* Course Select - Filtered by Program and Section */}
+                          <FormField
+                            control={form.control}
+                            name={`assignments.${index}.courseId`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className='text-xs font-medium'>
+                                  Course
+                                </FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                  disabled={
+                                    !assignment.programId ||
+                                    !assignment.sectionId
+                                  }
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className='h-10'>
+                                      <SelectValue
+                                        placeholder={
+                                          !assignment.programId
+                                            ? "Select program first"
+                                            : !assignment.sectionId
+                                            ? "Select section first"
+                                            : "Select course"
+                                        }
+                                      />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {filteredCourses.length > 0 ? (
+                                      filteredCourses.map((course) => (
+                                        <SelectItem
+                                          key={course.id}
+                                          value={course.id}
+                                        >
+                                          {course.code} - {course.name}
+                                        </SelectItem>
+                                      ))
+                                    ) : (
+                                      <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                        No courses available
+                                      </div>
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage className='text-xs' />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
 

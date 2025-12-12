@@ -24,6 +24,18 @@ model Option {
   Response   Response[]
 }
 
+model Suggestion {
+  id           String           @id @default(uuid())
+  studentId    String
+  teacherId    String
+  assignmentId String
+  content      String           @db.Text
+  createdAt    DateTime         @default(now())
+  assignment   TeachersAssigned @relation(fields: [assignmentId], references: [id])
+  student      User             @relation("Suggestion_student", fields: [studentId], references: [id])
+  teacher      Teacher          @relation(fields: [teacherId], references: [id])
+}
+
 model Question {
   id         String       @id @default(uuid())
   question   String
@@ -56,8 +68,6 @@ model Student {
   fullName  String
   programId  String
   program    Program   @relation(fields: [programId], references: [id])
-  sectionId String
-  section   Section  @relation(fields: [sectionId], references: [id])
   createdAt DateTime @default(now())
   User      User?
 }
@@ -71,16 +81,18 @@ model User {
   studentId                         String?    @unique
   createdAt                         DateTime   @default(now())
   Response_Response_studentIdToUser Response[] @relation("Response_student")
+  Suggestion_student                Suggestion[] @relation("Suggestion_student")
   Student                           Student?   @relation(fields: [studentId], references: [id])
 }
 
 model Teacher {
-  id        String             @id @default(uuid())
-  facultyId Int                @unique
-  fullName  String
-  createdAt DateTime           @default(now())
-  responses Response[]
-  assigns   TeachersAssigned[] @relation("TeacherAssignments")
+  id          String             @id @default(uuid())
+  facultyId   Int                @unique
+  fullName    String
+  createdAt   DateTime           @default(now())
+  responses   Response[]
+  suggestions Suggestion[]
+  assigns     TeachersAssigned[] @relation("TeacherAssignments")
 }
 
 model Course {
@@ -97,7 +109,6 @@ model Course {
 model Section {
   id        String             @id @default(uuid())
   name      String
-  student   Student[]
   programId String
   Program   Program            @relation(fields: [programId], references: [id])
   courses   Course[]
@@ -122,6 +133,7 @@ model TeachersAssigned {
   sectionId   String
   createdAt   DateTime   @default(now())
   responses   Response[]
+  suggestions Suggestion[]
   Course      Course     @relation(fields: [courseId], references: [id])
   Program     Program    @relation(fields: [programId], references: [id])
   Section     Section    @relation(fields: [sectionId], references: [id])

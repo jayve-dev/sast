@@ -1,13 +1,10 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-// import { ZodError } from "zod";
 import { SignInSchema } from "../schema";
 import { prisma } from "./db";
 import bcrypt from "bcryptjs";
-// import { error } from "console";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
-  // adapter,
   providers: [
     Credentials({
       credentials: {
@@ -41,11 +38,12 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           return null;
         }
 
-        // if (error instanceof ZodError) {
-        //   console.error({ message: "Yawa ts", error });
-        // }
-
-        return user;
+        return {
+          id: user.id,
+          idNumber: user.idNumber,
+          fullName: user.fullName,
+          role: user.role,
+        };
       },
     }),
   ],
@@ -58,17 +56,19 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        // token.id = user.id;
+        token.id = user.id;
+        token.idNumber = user.idNumber;
+        token.fullName = user.fullName;
         token.role = user.role;
-        // token.fullName = user.fullName;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        // session.user.id = token.id as string;
+        session.user.id = token.id as string;
+        session.user.idNumber = token.idNumber as number;
+        session.user.fullName = token.fullName as string;
         session.user.role = token.role as string;
-        // session.user.fullName = token.fullName as string;
       }
       return session;
     },

@@ -1,95 +1,88 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../lib/db";
 
-type QuestionInput = {
-  text: string;
-  category: string;
-};
-
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { questions } = body;
 
-    if (!questions || questions.length === 0) {
+    if (!questions || !Array.isArray(questions) || questions.length === 0) {
       return NextResponse.json(
-        { message: "At least one question is required" },
+        { message: "Questions array is required" },
         { status: 400 }
       );
     }
 
-    const teacherAssignments = await prisma.teachersAssigned.findMany({
-      include: {
-        Teacher: true,
-        Course: true,
-        Section: true,
-        Program: true,
-      },
-    });
-
-    if (teacherAssignments.length === 0) {
-      return NextResponse.json(
-        { message: "No teacher assignments found" },
-        { status: 404 }
-      );
-    }
-
-    const categoryMap = new Map<string, string>();
-
-    for (const q of questions) {
-      if (!categoryMap.has(q.category)) {
-        const category = await prisma.category.upsert({
-          where: { name: q.category },
-          update: {},
-          create: { name: q.category },
-        });
-        categoryMap.set(q.category, category.id);
+    // Validate all questions
+    for (const question of questions) {
+      if (!question.text || !question.text.trim()) {
+        return NextResponse.json(
+          { message: "All questions must have text" },
+          { status: 400 }
+        );
+      }
+      if (!question.categoryId) {
+        return NextResponse.json(
+          { message: "All questions must have a category" },
+          { status: 400 }
+        );
       }
     }
 
-    const createdQuestions = await Promise.all(
-      questions.map(async (q: QuestionInput) => {
-        const categoryId = categoryMap.get(q.category)!;
+    // Define the Likert scale options (5-point scale)
+    const likertOptions = [
+      { text: "Strongly Disagree", value: 1 },
+      { text: "Disagree", value: 2 },
+      { text: "Neutral", value: 3 },
+      { text: "Agree", value: 4 },
+      { text: "Strongly Agree", value: 5 },
+    ];
 
-        const question = await prisma.question.create({
+    // Create all questions with their options in a transaction
+    const createdQuestions = await prisma.$transaction(
+      questions.map((question: { text: string; categoryId: string }) =>
+        prisma.question.create({
           data: {
-            question: q.text,
-            type: "LIKERT",
-            categoryId,
+            question: question.text.trim(),
+            categoryId: question.categoryId,
             Option: {
-              create: [
-                { text: "Strongly Disagree", value: 1 },
-                { text: "Disagree", value: 2 },
-                { text: "Neutral", value: 3 },
-                { text: "Agree", value: 4 },
-                { text: "Strongly Agree", value: 5 },
-              ],
+              create: likertOptions.map((option) => ({
+                text: option.text,
+                value: option.value,
+              })),
             },
           },
           include: {
             Option: true,
             Category: true,
           },
-        });
-
-        return question;
-      })
+        })
+      )
     );
 
     return NextResponse.json(
       {
         message: "Survey created successfully",
         questionsCreated: createdQuestions.length,
-        assignedTo: teacherAssignments.length,
         questions: createdQuestions,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error(error);
-    return new Response(
-      JSON.stringify({ message: "Failed to create survey", error }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+    console.error("Create questionnaire error:", error);
+
+    // Better error logging
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+
+    return NextResponse.json(
+      {
+        message: "Failed to create survey",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
     );
   }
 }
@@ -99,7 +92,11 @@ export async function GET() {
     const questions = await prisma.question.findMany({
       include: {
         Category: true,
-        Option: true,
+        Option: {
+          orderBy: {
+            value: "desc",
+          },
+        },
       },
       orderBy: {
         Category: {
@@ -108,12 +105,12 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(questions);
+    return NextResponse.json(questions, { status: 200 });
   } catch (error) {
-    console.error(error);
-    return new Response(
-      JSON.stringify({ message: "Failed to fetch questions", error }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+    console.error("Failed to fetch questions:", error);
+    return NextResponse.json(
+      { message: "Failed to fetch questions" },
+      { status: 500 }
     );
   }
 }

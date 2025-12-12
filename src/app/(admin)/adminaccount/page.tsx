@@ -190,13 +190,12 @@ export default function AdminPage() {
           </div>
 
           <div className='mt-8'>
-            <Table className='bg-white text-black rounded-lg '>
-              <TableHeader className='p-10'>
+            <Table className='bg-white text-black rounded-lg'>
+              <TableHeader>
                 <TableRow>
                   <TableHead>#</TableHead>
                   <TableHead>ID #</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -208,7 +207,6 @@ export default function AdminPage() {
                       <TableCell className='font-medium'>{idx + 1}</TableCell>
                       <TableCell>{user.idNumber}</TableCell>
                       <TableCell>{user.fullName}</TableCell>
-                      <TableCell>Online</TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger
