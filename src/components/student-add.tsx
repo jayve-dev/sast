@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { toast } from "sonner";
 
 interface StudentAddProps {
   onSuccess?: () => void;
@@ -57,14 +58,15 @@ const StudentAdd = ({ onSuccess }: StudentAddProps) => {
 
     const resData = await response.json();
     if (!response.ok) {
-      console.error("Error creating account:", resData.message);
+      console.error("Error creating student:", resData.message);
+      toast.error(`Error creating student`);
       setLoading(false);
       return;
     }
     setLoading(false);
     console.log("Student created successfully:", resData);
     form.reset();
-    alert("Student created successfully!");
+    toast.success("Student created successfully!");
   };
 
   return (
