@@ -58,13 +58,11 @@ const StudentAdd = ({ onSuccess }: StudentAddProps) => {
 
     const resData = await response.json();
     if (!response.ok) {
-      console.error("Error creating student:", resData.message);
       toast.error(`Error creating student`);
       setLoading(false);
       return;
     }
     setLoading(false);
-    console.log("Student created successfully:", resData);
     form.reset();
     toast.success("Student created successfully!");
   };

@@ -1,7 +1,6 @@
 "use client";
 import { StudentHeader } from "./student-header";
-import type React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,7 +37,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MoreHorizontal, Trash2, Edit, Search, Filter, X } from "lucide-react";
+import {
+  MoreHorizontal,
+  Trash2,
+  Edit,
+  Search,
+  Filter,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface Program {
@@ -53,6 +63,8 @@ interface Student {
   programId: string;
 }
 
+const ITEMS_PER_PAGE = 15;
+
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
@@ -63,6 +75,9 @@ export default function StudentsPage() {
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProgram, setSelectedProgram] = useState<string>("all");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [editStudent, setEditStudent] = useState<Student | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -81,6 +96,7 @@ export default function StudentsPage() {
   // Apply filters whenever search term, selected program, or students change
   useEffect(() => {
     applyFilters();
+    setCurrentPage(1); // Reset to first page when filters change
   }, [searchTerm, selectedProgram, students]);
 
   const fetchStudents = async () => {
@@ -134,6 +150,19 @@ export default function StudentsPage() {
 
   const hasActiveFilters = searchTerm !== "" || selectedProgram !== "all";
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentStudents = filteredStudents.slice(startIndex, endIndex);
+
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToLastPage = () => setCurrentPage(totalPages);
+  const goToNextPage = () =>
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  const goToPreviousPage = () =>
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+
   const handleDelete = async () => {
     if (!deleteId) return;
 
@@ -152,6 +181,13 @@ export default function StudentsPage() {
       toast.success("Student deleted successfully");
       setStudents(students.filter((student) => student.id !== deleteId));
       setDeleteId(null);
+
+      // Adjust current page if needed
+      const newFilteredLength = filteredStudents.length - 1;
+      const newTotalPages = Math.ceil(newFilteredLength / ITEMS_PER_PAGE);
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(newTotalPages);
+      }
     } catch (error) {
       console.error("Delete error:", error);
       const errorMessage =
@@ -291,9 +327,9 @@ export default function StudentsPage() {
             </div>
 
             <div className='bg-card border border-border rounded-lg p-2 flex flex-row justify-center items-center gap-2'>
-              <p className='text-sm text-muted-foreground'>Programs:</p>
+              <p className='text-sm text-muted-foreground'>Showing:</p>
               <p className='text-2xl font-bold text-foreground'>
-                {programs.length}
+                {filteredStudents.length}
               </p>
             </div>
           </div>
@@ -347,7 +383,7 @@ export default function StudentsPage() {
 
         {/* Table Body */}
         <div className='divide-y divide-border'>
-          {filteredStudents.length === 0 ? (
+          {currentStudents.length === 0 ? (
             <div className='px-6 py-12 text-center'>
               <p className='text-muted-foreground mb-2'>
                 {hasActiveFilters
@@ -367,13 +403,18 @@ export default function StudentsPage() {
               )}
             </div>
           ) : (
-            filteredStudents.map((student) => (
+            currentStudents.map((student, index) => (
               <div
                 key={student.id}
                 className='grid grid-cols-4 gap-4 px-6 py-4 items-center hover:bg-secondary/30 transition-colors'
               >
-                <div className='font-medium text-foreground'>
-                  {student.idNumber}
+                <div className='flex items-center gap-3'>
+                  <span className='text-xs text-muted-foreground w-6'>
+                    {startIndex + index + 1}
+                  </span>
+                  <span className='font-medium text-foreground'>
+                    {student.idNumber}
+                  </span>
                 </div>
                 <div className='text-foreground'>{student.fullName}</div>
                 <div className='text-sm text-muted-foreground'>
@@ -410,6 +451,73 @@ export default function StudentsPage() {
             ))
           )}
         </div>
+
+        {/* Pagination */}
+        {filteredStudents.length > 0 && (
+          <div className='px-6 py-4 border-t border-border bg-secondary/20'>
+            <div className='flex items-center justify-between'>
+              <div className='text-sm text-muted-foreground'>
+                <span className='font-medium text-foreground'>
+                  {startIndex + 1}
+                </span>{" "}
+              </div>
+
+              <div className='flex items-center gap-2'>
+                {/* Previous Page */}
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                  className='h-8 w-8 p-0'
+                >
+                  <ChevronLeft className='h-4 w-4' />
+                </Button>
+
+                {/* Page Numbers */}
+                <div className='flex items-center gap-1'>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((page) => {
+                      // Show first page, last page, current page, and adjacent pages
+                      return (
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - currentPage) <= 1
+                      );
+                    })
+                    .map((page, index, array) => (
+                      <React.Fragment key={page}>
+                        {index > 0 && array[index - 1] !== page - 1 && (
+                          <span className='px-2 text-muted-foreground'>
+                            ...
+                          </span>
+                        )}
+                        <Button
+                          variant={currentPage === page ? "default" : "outline"}
+                          size='sm'
+                          onClick={() => setCurrentPage(page)}
+                          className='h-8 w-8 p-0'
+                        >
+                          {page}
+                        </Button>
+                      </React.Fragment>
+                    ))}
+                </div>
+
+                {/* Next Page */}
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  className='h-8 w-8 p-0'
+                >
+                  <ChevronRight className='h-4 w-4' />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation Dialog */}
