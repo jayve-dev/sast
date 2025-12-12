@@ -39,7 +39,6 @@ const SignInForm = () => {
     }
   }, [error]);
 
-  // Redirect if already logged in
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
       if (session.user.role === "ADMIN") {
@@ -217,18 +216,6 @@ const SignInForm = () => {
               "Sign In"
             )}
           </Button>
-
-          {/* Help Text */}
-          <p className='text-sm text-muted-foreground text-center'>
-            Having trouble signing in?{" "}
-            <button
-              type='button'
-              className='text-primary hover:underline'
-              onClick={() => router.push("/help")}
-            >
-              Get help
-            </button>
-          </p>
         </form>
       </Form>
     </CardWrapper>

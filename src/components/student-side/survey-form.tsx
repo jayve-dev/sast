@@ -283,7 +283,7 @@ export default function StudentSurveyPage({
 
         {/* Suggestion Card - Shows after all questions */}
         {showSuggestion ? (
-          <div className='bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6'>
+          <div className='bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 text-black'>
             <div className='mb-6'>
               <div className='flex items-center gap-3 mb-4'>
                 <div className='w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center'>

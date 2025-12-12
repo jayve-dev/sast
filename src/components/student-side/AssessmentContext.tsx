@@ -3,8 +3,6 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 export interface AssessmentSelection {
-  programId: string;
-  programName: string;
   sectionId: string;
   sectionName: string;
   courseId: string;
@@ -14,6 +12,7 @@ export interface AssessmentSelection {
   assignmentId: string;
   studentId: string;
   studentName?: string;
+  programId?: string;
 }
 
 interface AssessmentContextType {
@@ -22,15 +21,12 @@ interface AssessmentContextType {
   resetSelection: () => void;
   currentStep: number;
   setCurrentStep: (step: number) => void;
-  setProgram: (programId: string) => void;
   setSection: (sectionId: string) => void;
   setCourse: (courseId: string) => void;
   setInstructor: (instructorId: string, assignmentId: string) => void;
 }
 
 const initialSelection: AssessmentSelection = {
-  programId: "",
-  programName: "",
   sectionId: "",
   sectionName: "",
   courseId: "",
@@ -40,6 +36,7 @@ const initialSelection: AssessmentSelection = {
   assignmentId: "",
   studentId: "",
   studentName: "",
+  programId: "",
 };
 
 const AssessmentContext = createContext<AssessmentContextType | undefined>(
@@ -60,28 +57,25 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       ...initialSelection,
       studentId: prev.studentId, // Keep studentId when resetting
       studentName: prev.studentName, // Keep studentName when resetting
+      programId: prev.programId, // Keep programId when resetting
     }));
     setCurrentStep(1);
   };
 
-  const setProgram = (programId: string) => {
-    updateSelection({ programId });
-    setCurrentStep(2);
-  };
-
   const setSection = (sectionId: string) => {
     updateSelection({ sectionId });
-    setCurrentStep(3);
+    // Don't auto-advance step - let component handle it
   };
 
   const setCourse = (courseId: string) => {
     updateSelection({ courseId });
-    setCurrentStep(4);
+    // Don't auto-advance step - let component handle it
   };
 
   const setInstructor = (instructorId: string, assignmentId: string) => {
     updateSelection({ instructorId, assignmentId });
-    setCurrentStep(5);
+    // Move to survey step
+    setCurrentStep(4);
   };
 
   return (
@@ -92,7 +86,6 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
         resetSelection,
         currentStep,
         setCurrentStep,
-        setProgram,
         setSection,
         setCourse,
         setInstructor,

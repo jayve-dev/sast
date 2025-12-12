@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { BookOpen, Code } from "lucide-react";
+import { BookOpen, Clock } from "lucide-react";
 import { useAssessment } from "./AssessmentContext";
 
 interface Course {
@@ -9,19 +9,18 @@ interface Course {
   code: string;
   name: string;
   programId: string;
-  sectionId: string;
 }
 
 const CourseSelection = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const { selection, setCourse } = useAssessment();
+  const { selection, setCourse, setCurrentStep } = useAssessment();
 
   useEffect(() => {
-    if (selection.programId && selection.sectionId) {
+    if (selection.programId) {
       fetchCourses();
     }
-  }, [selection.programId, selection.sectionId]);
+  }, [selection.programId]);
 
   const fetchCourses = async () => {
     try {
@@ -33,12 +32,10 @@ const CourseSelection = () => {
 
       const data = await response.json();
 
-      // Filter courses by selected program and section
+      // Filter courses by the student's program
       const filteredCourses = Array.isArray(data)
         ? data.filter(
-            (course: Course) =>
-              course.programId === selection.programId &&
-              course.sectionId === selection.sectionId
+            (course: Course) => course.programId === selection.programId
           )
         : [];
 
@@ -54,7 +51,11 @@ const CourseSelection = () => {
 
   const handleSelectCourse = (course: Course) => {
     setCourse(course.id);
-    toast.success(`Selected ${course.code} - ${course.name}`);
+    toast.success(`Selected ${course.name}`);
+    // Move to next step after selection
+    setTimeout(() => {
+      setCurrentStep(3);
+    }, 300);
   };
 
   if (loading) {
@@ -68,9 +69,12 @@ const CourseSelection = () => {
   if (courses.length === 0) {
     return (
       <div className='flex items-center justify-center p-8'>
-        <p className='text-muted-foreground'>
-          No courses available for this section
-        </p>
+        <div className='text-center space-y-2'>
+          <p className='text-muted-foreground'>No courses available</p>
+          <p className='text-sm text-muted-foreground'>
+            There are no courses configured for your program yet.
+          </p>
+        </div>
       </div>
     );
   }
@@ -79,7 +83,7 @@ const CourseSelection = () => {
     <div className='space-y-6 w-full'>
       <div>
         <h2 className='text-2xl font-semibold text-foreground mb-2'>
-          Select a Course
+          Select Course
         </h2>
         <p className='text-sm text-muted-foreground'>
           Choose the course you want to evaluate
@@ -97,28 +101,20 @@ const CourseSelection = () => {
                 : "border-border hover:border-primary/50 bg-card hover:bg-secondary"
             }`}
           >
-            <div className='flex items-start gap-4 mb-3'>
-              <div className='flex h-12 w-12 items-center justify-center rounded-full bg-chart-1/10 shrink-0'>
-                <BookOpen className='h-6 w-6 text-chart-1' />
+            <div className='flex items-start gap-4 mb-4'>
+              <div className='flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 shrink-0'>
+                <BookOpen className='h-6 w-6 text-primary' />
               </div>
 
               <div className='flex-1 min-w-0'>
-                <div className='flex items-center gap-2 mb-1'>
-                  <Code className='h-4 w-4 text-primary' />
-                  <span className='text-sm font-mono font-semibold text-primary'>
-                    {course.code}
-                  </span>
-                </div>
-                <h3 className='font-semibold text-foreground text-base line-clamp-2 group-hover:text-primary transition-colors'>
+                <h3 className='font-semibold text-foreground text-lg truncate group-hover:text-primary transition-colors'>
                   {course.name}
                 </h3>
+                <p className='text-xs text-muted-foreground mt-1 flex items-center gap-1'>
+                  <Clock className='h-3 w-3' />
+                  {course.code}
+                </p>
               </div>
-            </div>
-
-            <div className='mt-4 pt-3 border-t border-border'>
-              <span className='inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-chart-1/10 text-chart-1'>
-                Course
-              </span>
             </div>
 
             {selection.courseId === course.id && (

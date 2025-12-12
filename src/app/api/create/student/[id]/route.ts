@@ -1,6 +1,68 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../../lib/db";
+import { auth } from "../../../../../../lib/auth";
 import bcrypt from "bcryptjs";
+
+export async function GET(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+
+    if (!session) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const params = await context.params;
+    const { id } = params;
+
+    if (!id) {
+      return NextResponse.json(
+        { message: "Student ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { id },
+      include: {
+        program: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        User: {
+          select: {
+            id: true,
+            idNumber: true,
+            fullName: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!student) {
+      return NextResponse.json(
+        { message: "Student not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(student);
+  } catch (error) {
+    console.error("Error fetching student:", error);
+    return NextResponse.json(
+      {
+        message: "Failed to fetch student data",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
 
 export async function DELETE(
   req: Request,

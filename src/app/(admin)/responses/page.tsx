@@ -244,7 +244,7 @@ export default function ResponsesPage() {
   }
 
   return (
-    <div className='w-full min-h-screen bg-background p-6'>
+    <div className='w-full min-h-screen bg-background px-6'>
       <div className='max-w-7xl mx-auto space-y-6'>
         {/* Header */}
         <div className='flex items-center justify-between'>
@@ -351,7 +351,7 @@ export default function ResponsesPage() {
                 onValueChange={setSelectedProgram}
               >
                 <SelectTrigger className='w-full'>
-                  <SelectValue placeholder='Program'/>
+                  <SelectValue placeholder='Program' />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value='all'>All Programs</SelectItem>
@@ -367,7 +367,7 @@ export default function ResponsesPage() {
                 value={selectedSection}
                 onValueChange={setSelectedSection}
               >
-                <SelectTrigger className='w-full'> 
+                <SelectTrigger className='w-full'>
                   <SelectValue placeholder='Section' />
                 </SelectTrigger>
                 <SelectContent>
