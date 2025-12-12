@@ -264,7 +264,6 @@ export default function InstructorAdd() {
         },
       ]);
 
-      // Optionally refresh the page or redirect
       router.refresh();
     } catch (error) {
       console.error("Error:", error);

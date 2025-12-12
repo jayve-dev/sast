@@ -10,16 +10,24 @@ export async function POST(req: Request) {
       programId,
       sectionId,
       courseId,
+      studentId,
       responses,
-      studentId, // Add this if you're passing it from the form
+      suggestion, // New field
     } = body;
 
-    console.log("Received submission:", body); // Debug log
+    console.log("Received submission:", {
+      assignmentId,
+      teacherId,
+      studentId,
+      responseCount: responses?.length,
+      hasSuggestion: !!suggestion,
+    });
 
     // Validate required fields
     if (
       !assignmentId ||
       !teacherId ||
+      !studentId ||
       !responses ||
       !Array.isArray(responses)
     ) {
@@ -29,86 +37,64 @@ export async function POST(req: Request) {
       );
     }
 
-    if (responses.length === 0) {
-      return NextResponse.json(
-        { message: "No responses provided" },
-        { status: 400 }
-      );
-    }
-
-    // Check if student already submitted for this assignment and teacher
-    const existingResponse = await prisma.response.findFirst({
-      where: {
-        assignmentId,
-        teacherId,
-        // If you have studentId, add it here
-        // studentId: studentId,
-      },
+    // Verify the assignment exists
+    const assignment = await prisma.teachersAssigned.findUnique({
+      where: { id: assignmentId },
     });
 
-    if (existingResponse) {
+    if (!assignment) {
       return NextResponse.json(
-        {
-          message:
-            "You have already submitted an assessment for this instructor",
-        },
-        { status: 400 }
+        { message: "Assignment not found" },
+        { status: 404 }
       );
     }
 
-    // Validate all questions and options exist
-    for (const response of responses) {
-      const question = await prisma.question.findUnique({
-        where: { id: response.questionId },
-        include: { Option: true },
-      });
-
-      if (!question) {
-        return NextResponse.json(
-          { message: `Question ${response.questionId} not found` },
-          { status: 400 }
-        );
-      }
-
-      const optionExists = question.Option.some(
-        (opt) => opt.id === response.optionId
-      );
-      if (!optionExists) {
-        return NextResponse.json(
-          { message: `Invalid option for question ${response.questionId}` },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Create all responses in a transaction
-    const createdResponses = await prisma.$transaction(
-      responses.map((response: { questionId: string; optionId: string }) =>
-        prisma.response.create({
-          data: {
+    // Use a transaction to create responses and suggestion
+    const result = await prisma.$transaction(async (tx) => {
+      // Create all responses
+      const createdResponses = await tx.response.createMany({
+        data: responses.map(
+          (response: { questionId: string; optionId: string }) => ({
+            studentId,
             teacherId,
             questionId: response.questionId,
             optionId: response.optionId,
             assignmentId,
+          })
+        ),
+      });
+
+      // Create suggestion if provided
+      let createdSuggestion = null;
+      if (suggestion && suggestion.trim()) {
+        createdSuggestion = await tx.suggestion.create({
+          data: {
             studentId,
-            // Add studentId if you're tracking it
-            // studentId: studentId,
+            teacherId,
+            assignmentId,
+            content: suggestion.trim(),
           },
-        })
-      )
-    );
+        });
+      }
+
+      return { createdResponses, createdSuggestion };
+    });
+
+    console.log("Submission successful:", {
+      responsesCreated: result.createdResponses.count,
+      suggestionCreated: !!result.createdSuggestion,
+    });
 
     return NextResponse.json(
       {
         message: "Assessment submitted successfully",
-        count: createdResponses.length,
+        responsesCreated: result.createdResponses.count,
+        suggestionCreated: !!result.createdSuggestion,
       },
-      { status: 201 }
+      { status: 200 }
     );
   } catch (error) {
     console.error("Submit assessment error:", error);
-
-    // Return proper JSON error response
     return NextResponse.json(
       {
         message: "Failed to submit assessment",

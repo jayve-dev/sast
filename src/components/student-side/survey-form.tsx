@@ -7,9 +7,11 @@ import {
   Check,
   AlertCircle,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { useAssessment } from "./AssessmentContext";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Option {
   id: string;
@@ -44,6 +46,8 @@ export default function StudentSurveyPage({
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuggestion, setShowSuggestion] = useState(false);
+  const [suggestion, setSuggestion] = useState("");
 
   useEffect(() => {
     fetchSurveyData();
@@ -59,7 +63,7 @@ export default function StudentSurveyPage({
 
       const data = await response.json();
 
-      console.log("Fetched data:", data); // Debug log
+      console.log("Fetched data:", data);
 
       // Transform the data to match the expected format
       const transformedCategories = Array.isArray(data)
@@ -84,7 +88,7 @@ export default function StudentSurveyPage({
           }))
         : [];
 
-      console.log("Transformed categories:", transformedCategories); // Debug log
+      console.log("Transformed categories:", transformedCategories);
 
       setCategories(transformedCategories);
     } catch (error) {
@@ -124,11 +128,18 @@ export default function StudentSurveyPage({
 
     if (currentPage < totalPages - 1) {
       setCurrentPage(currentPage + 1);
+    } else {
+      // If this is the last page, show suggestion section
+      setShowSuggestion(true);
+      // Scroll to top smoothly
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const handlePrevious = () => {
-    if (currentPage > 0) {
+    if (showSuggestion) {
+      setShowSuggestion(false);
+    } else if (currentPage > 0) {
       setCurrentPage(currentPage - 1);
     }
   };
@@ -160,9 +171,10 @@ export default function StudentSurveyPage({
           questionId,
           optionId,
         })),
+        suggestion: suggestion.trim() || null, // Include suggestion
       };
 
-      console.log("Submitting payload:", payload); // Debug log
+      console.log("Submitting payload:", payload);
 
       const response = await fetch("/api/create/student/submit-assessment", {
         method: "POST",
@@ -184,8 +196,13 @@ export default function StudentSurveyPage({
         throw new Error(result.message || "Failed to submit assessment");
       }
 
-      // Clear answers before going back
+      toast.success("Assessment submitted successfully!");
+
+      // Clear answers and suggestion
       setAnswers({});
+      setSuggestion("");
+      setShowSuggestion(false);
+      setCurrentPage(0);
 
       // Call onComplete which will reset and go back to step 1
       onComplete();
@@ -229,7 +246,7 @@ export default function StudentSurveyPage({
   }
 
   return (
-    <div className='min-h-screen w-full bg-lineat-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8'>
+    <div className='min-h-screen w-full bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8'>
       <div className='max-w-4xl mx-auto'>
         {/* Header */}
         <div className='bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6'>
@@ -245,7 +262,9 @@ export default function StudentSurveyPage({
           <div className='mt-6'>
             <div className='flex justify-between items-center mb-2'>
               <span className='text-sm font-medium text-gray-600'>
-                Category {currentPage + 1} of {totalPages}
+                {showSuggestion
+                  ? "Feedback & Suggestions"
+                  : `Category ${currentPage + 1} of ${totalPages}`}
               </span>
               <span className='text-sm font-medium text-indigo-600'>
                 {answeredQuestions} / {totalQuestions} questions answered
@@ -254,120 +273,157 @@ export default function StudentSurveyPage({
             <div className='h-3 bg-gray-200 rounded-full overflow-hidden'>
               <div
                 className='h-full bg-linear-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500 ease-out'
-                style={{ width: `${progress}%` }}
+                style={{
+                  width: showSuggestion ? "100%" : `${progress}%`,
+                }}
               />
             </div>
           </div>
         </div>
 
-        {/* Question Card */}
-        <div className='bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6'>
-          <div className='mb-6'>
-            <div className='inline-block bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-semibold mb-2'>
-              {currentCategory.name}
-            </div>
-            {currentCategory.description && (
-              <p className='text-sm text-gray-600 mt-2'>
-                {currentCategory.description}
-              </p>
-            )}
-          </div>
-
-          <div className='space-y-8'>
-            {currentCategory.questions.length > 0 ? (
-              currentCategory.questions.map((question, index) => (
-                <div
-                  key={question.id}
-                  className='pb-8 border-b border-gray-200 last:border-0 last:pb-0'
-                >
-                  <div className='flex gap-3 mb-4'>
-                    <span className='shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center font-semibold text-sm'>
-                      {index + 1}
-                    </span>
-                    <h3 className='text-lg font-semibold text-gray-800 flex-1'>
-                      {question.text}
-                    </h3>
-                    {answers[question.id] && (
-                      <Check className='w-5 h-5 text-green-500 shrink-0' />
-                    )}
-                  </div>
-
-                  {/* Rating Options */}
-                  <div className='ml-11 space-y-2'>
-                    {question.options && question.options.length > 0 ? (
-                      question.options
-                        .sort((a, b) => b.value - a.value) // Sort by value descending (5 to 1)
-                        .map((option) => (
-                          <label
-                            key={option.id}
-                            className={`flex items-center p-4 rounded-xl cursor-pointer transition-all border-2 ${
-                              answers[question.id] === option.id
-                                ? "border-indigo-500 bg-indigo-50 shadow-md"
-                                : "border-gray-200 bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200"
-                            }`}
-                          >
-                            <input
-                              type='radio'
-                              name={question.id}
-                              value={option.id}
-                              checked={answers[question.id] === option.id}
-                              onChange={(e) =>
-                                handleAnswer(question.id, e.target.value)
-                              }
-                              className='w-5 h-5 text-indigo-600 focus:ring-indigo-500'
-                            />
-                            <div className='ml-3 flex-1 flex items-center justify-between'>
-                              <span className='text-gray-700 font-medium'>
-                                {option.text}
-                              </span>
-                              <span
-                                className={`text-sm font-semibold px-2.5 py-1 rounded-full ${
-                                  answers[question.id] === option.id
-                                    ? "bg-indigo-500 text-white"
-                                    : "bg-gray-200 text-gray-600"
-                                }`}
-                              >
-                                {option.value}
-                              </span>
-                            </div>
-                          </label>
-                        ))
-                    ) : (
-                      <p className='text-sm text-red-500'>
-                        No options available for this question
-                      </p>
-                    )}
-                  </div>
+        {/* Suggestion Card - Shows after all questions */}
+        {showSuggestion ? (
+          <div className='bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6'>
+            <div className='mb-6'>
+              <div className='flex items-center gap-3 mb-4'>
+                <div className='w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center'>
+                  <MessageSquare className='w-6 h-6 text-blue-600' />
                 </div>
-              ))
-            ) : (
-              <div className='text-center text-gray-500 py-8'>
-                No questions available in this category
+                <div>
+                  <h2 className='text-2xl font-bold text-gray-800'>
+                    Feedback & Suggestions
+                  </h2>
+                  <p className='text-sm text-gray-600'>
+                    Share your thoughts (Optional)
+                  </p>
+                </div>
               </div>
-            )}
+              <p className='text-gray-600 text-sm'>
+                Your feedback helps us improve the teaching experience. Feel
+                free to share any additional comments, suggestions, or concerns.
+              </p>
+            </div>
+
+            <div className='space-y-4'>
+              <Textarea
+                value={suggestion}
+                onChange={(e) => setSuggestion(e.target.value)}
+                placeholder='Write your feedback or suggestions here... (optional)'
+                className='min-h-[200px] resize-none text-base p-4 border-2 border-gray-200 focus:border-indigo-500 rounded-xl'
+                maxLength={1000}
+              />
+              <div className='flex justify-between items-center text-sm'>
+                <p className='text-gray-500'>
+                  Your feedback is anonymous and confidential
+                </p>
+                <p className='text-gray-600'>
+                  {suggestion.length} / 1000 characters
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Question Card */
+          <div className='bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6'>
+            <div className='mb-6'>
+              <div className='inline-block bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-semibold mb-2'>
+                {currentCategory.name}
+              </div>
+              {currentCategory.description && (
+                <p className='text-sm text-gray-600 mt-2'>
+                  {currentCategory.description}
+                </p>
+              )}
+            </div>
+
+            <div className='space-y-8'>
+              {currentCategory.questions.length > 0 ? (
+                currentCategory.questions.map((question, index) => (
+                  <div
+                    key={question.id}
+                    className='pb-8 border-b border-gray-200 last:border-0 last:pb-0'
+                  >
+                    <div className='flex gap-3 mb-4'>
+                      <span className='shrink-0 w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center font-semibold text-sm'>
+                        {index + 1}
+                      </span>
+                      <h3 className='text-lg font-semibold text-gray-800 flex-1'>
+                        {question.text}
+                      </h3>
+                      {answers[question.id] && (
+                        <Check className='w-5 h-5 text-green-500 shrink-0' />
+                      )}
+                    </div>
+
+                    {/* Rating Options */}
+                    <div className='ml-11 space-y-2'>
+                      {question.options && question.options.length > 0 ? (
+                        question.options
+                          .sort((a, b) => b.value - a.value)
+                          .map((option) => (
+                            <label
+                              key={option.id}
+                              className={`flex items-center p-4 rounded-xl cursor-pointer transition-all border-2 ${
+                                answers[question.id] === option.id
+                                  ? "border-indigo-500 bg-indigo-50 shadow-md"
+                                  : "border-gray-200 bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200"
+                              }`}
+                            >
+                              <input
+                                type='radio'
+                                name={question.id}
+                                value={option.id}
+                                checked={answers[question.id] === option.id}
+                                onChange={(e) =>
+                                  handleAnswer(question.id, e.target.value)
+                                }
+                                className='w-5 h-5 text-indigo-600 focus:ring-indigo-500'
+                              />
+                              <div className='ml-3 flex-1 flex items-center justify-between'>
+                                <span className='text-gray-700 font-medium'>
+                                  {option.text}
+                                </span>
+                                <span
+                                  className={`text-sm font-semibold px-2.5 py-1 rounded-full ${
+                                    answers[question.id] === option.id
+                                      ? "bg-indigo-500 text-white"
+                                      : "bg-gray-200 text-gray-600"
+                                  }`}
+                                >
+                                  {option.value}
+                                </span>
+                              </div>
+                            </label>
+                          ))
+                      ) : (
+                        <p className='text-sm text-red-500'>
+                          No options available for this question
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className='text-center text-gray-500 py-8'>
+                  No questions available in this category
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Navigation */}
         <div className='flex justify-between items-center gap-4'>
           <button
             onClick={handlePrevious}
-            disabled={currentPage === 0}
+            disabled={currentPage === 0 && !showSuggestion}
             className='inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md'
           >
             <ChevronLeft size={20} />
             Previous
           </button>
 
-          {currentPage < totalPages - 1 ? (
-            <button
-              onClick={handleNext}
-              className='inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105'
-            >
-              Next
-              <ChevronRight size={20} />
-            </button>
-          ) : (
+          {showSuggestion ? (
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || answeredQuestions < totalQuestions}
@@ -384,6 +440,15 @@ export default function StudentSurveyPage({
                   Submit Survey
                 </>
               )}
+            </button>
+          ) : (
+            <button
+              onClick={handleNext}
+              disabled={currentCategory.questions.some((q) => !answers[q.id])}
+              className='inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100'
+            >
+              {currentPage === totalPages - 1 ? "Continue" : "Next"}
+              <ChevronRight size={20} />
             </button>
           )}
         </div>
