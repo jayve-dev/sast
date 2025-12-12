@@ -22,6 +22,9 @@ export async function DELETE(
     // Check if instructor exists
     const instructor = await prisma.teacher.findUnique({
       where: { id },
+      include: {
+        assigns: true,
+      },
     });
 
     console.log("Instructor found:", instructor);
@@ -33,14 +36,31 @@ export async function DELETE(
       );
     }
 
-    // Delete all teaching assignments first
+    // Get all assignment IDs for this teacher
+    const assignmentIds = instructor.assigns.map((assignment) => assignment.id);
+
+    console.log("Assignment IDs to delete:", assignmentIds);
+
+    // Step 1: Delete all responses related to these assignments first
+    if (assignmentIds.length > 0) {
+      const deletedResponses = await prisma.response.deleteMany({
+        where: {
+          assignmentId: {
+            in: assignmentIds,
+          },
+        },
+      });
+      console.log("Deleted responses:", deletedResponses.count);
+    }
+
+    // Step 2: Delete all teaching assignments
     const deletedAssignments = await prisma.teachersAssigned.deleteMany({
       where: { teacherId: id },
     });
 
     console.log("Deleted assignments:", deletedAssignments.count);
 
-    // Delete the teacher
+    // Step 3: Delete the teacher
     const deletedTeacher = await prisma.teacher.delete({
       where: { id },
     });
@@ -51,6 +71,8 @@ export async function DELETE(
       {
         message: "Instructor deleted successfully",
         instructor: deletedTeacher,
+        deletedAssignments: deletedAssignments.count,
+        deletedResponses: assignmentIds.length,
       },
       { status: 200 }
     );
@@ -88,6 +110,9 @@ export async function PATCH(
     // Check if instructor exists
     const instructor = await prisma.teacher.findUnique({
       where: { id },
+      include: {
+        assigns: true,
+      },
     });
 
     if (!instructor) {
@@ -128,6 +153,21 @@ export async function PATCH(
     // Update assignments if provided
     if (assignments && Array.isArray(assignments) && assignments.length > 0) {
       console.log("Updating assignments:", assignments);
+
+      // Get all existing assignment IDs for this teacher
+      const existingAssignmentIds = instructor.assigns.map((a) => a.id);
+
+      // Delete responses for existing assignments before deleting assignments
+      if (existingAssignmentIds.length > 0) {
+        await prisma.response.deleteMany({
+          where: {
+            assignmentId: {
+              in: existingAssignmentIds,
+            },
+          },
+        });
+        console.log("Deleted responses for existing assignments");
+      }
 
       // Delete all existing assignments for this teacher
       await prisma.teachersAssigned.deleteMany({

@@ -20,7 +20,7 @@ return (
 <Dialog>
     <DialogTrigger className={className}>{triggerText}</DialogTrigger>
     <DialogContent>
-        <DialogHeader>
+        <DialogHeader className="max-w-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>
                 {children}

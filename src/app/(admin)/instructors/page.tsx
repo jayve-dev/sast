@@ -41,7 +41,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { MoreHorizontal, Trash2, Edit, BookOpen, Plus, X } from "lucide-react";
 import { toast } from "sonner";
-import { InstructorAdd } from "@/components/instructor-add";
+import Link from "next/link";
 
 interface Course {
   id: string;
@@ -296,7 +296,9 @@ export default function InstructorsPage() {
             Manage faculty members and instructors
           </p>
         </div>
-        <InstructorAdd />
+        <Link href='/instructors/add-instructor'>   
+            <Button>Add Instructor </Button>    
+        </Link>
       </div>
 
       <div className='rounded-xl border border-border bg-card overflow-hidden shadow-sm'>
