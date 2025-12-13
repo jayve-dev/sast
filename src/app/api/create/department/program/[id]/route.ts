@@ -18,12 +18,55 @@ export async function DELETE(
 
     const program = await prisma.program.findUnique({
       where: { id },
+      include: {
+        students: true,
+        sections: true,
+        courses: true,
+        assign: true,
+      },
     });
 
     if (!program) {
       return NextResponse.json(
         { message: "Program not found" },
         { status: 404 }
+      );
+    }
+
+    // Check for dependencies
+    if (program.students.length > 0) {
+      return NextResponse.json(
+        {
+          message: `Cannot delete program. It has ${program.students.length} student(s) enrolled.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (program.sections.length > 0) {
+      return NextResponse.json(
+        {
+          message: `Cannot delete program. It has ${program.sections.length} section(s) assigned.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (program.courses.length > 0) {
+      return NextResponse.json(
+        {
+          message: `Cannot delete program. It has ${program.courses.length} course(s) assigned.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (program.assign.length > 0) {
+      return NextResponse.json(
+        {
+          message: `Cannot delete program. It has ${program.assign.length} teacher assignment(s).`,
+        },
+        { status: 400 }
       );
     }
 
@@ -38,7 +81,10 @@ export async function DELETE(
   } catch (error) {
     console.error("Delete program error:", error);
     return NextResponse.json(
-      { message: "Failed to delete program" },
+      {
+        message: "Failed to delete program",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
@@ -94,7 +140,10 @@ export async function PATCH(
   } catch (error) {
     console.error("Update program error:", error);
     return NextResponse.json(
-      { message: "Failed to update program" },
+      {
+        message: "Failed to update program",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

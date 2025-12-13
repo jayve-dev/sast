@@ -249,7 +249,7 @@ export default function DepartmentDashboard() {
             </p>
           </div>
 
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className='gap-2'>
                 <Plus className='w-4 h-4' />
@@ -273,7 +273,7 @@ export default function DepartmentDashboard() {
                 </AddModal>
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </div>
 
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
@@ -356,14 +356,18 @@ export default function DepartmentDashboard() {
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
           {/* Programs Table */}
           <Card className='border border-border'>
-            <CardHeader className="flex flex-row justify-between">
+            <CardHeader className='flex flex-row justify-between'>
               <div>
                 <CardTitle>Programs</CardTitle>
                 <CardDescription>Manage all academic programs</CardDescription>
               </div>
-              <AddModal className="bg-black text-white px-4 py-1 rounded-md" triggerText='Add' title='Add Program'>
-                  <ProgramAdd />
-                </AddModal>
+              <AddModal
+                className='bg-black text-white px-4 py-1 rounded-md'
+                triggerText='Add'
+                title='Add Program'
+              >
+                <ProgramAdd />
+              </AddModal>
             </CardHeader>
             <CardContent className='p-0'>
               <div className='rounded-lg border border-border overflow-hidden'>
@@ -430,16 +434,20 @@ export default function DepartmentDashboard() {
             </CardContent>
           </Card>
 
-           {/* Sections Table */}
+          {/* Sections Table */}
           <Card className='border border-border'>
-            <CardHeader className="flex flex-row justify-between">
+            <CardHeader className='flex flex-row justify-between'>
               <div>
                 <CardTitle>Sections</CardTitle>
                 <CardDescription>Manage all sections</CardDescription>
               </div>
-              <AddModal triggerText='Add' title='Add Section' className="bg-black text-white px-4 py-1 rounded-md">
-                  <SectionAdd />
-                </AddModal>
+              <AddModal
+                triggerText='Add'
+                title='Add Section'
+                className='bg-black text-white px-4 py-1 rounded-md'
+              >
+                <SectionAdd />
+              </AddModal>
             </CardHeader>
             <CardContent className='p-0'>
               <div className='rounded-lg border border-border overflow-hidden'>
@@ -508,14 +516,18 @@ export default function DepartmentDashboard() {
 
           {/* Courses Table */}
           <Card className='border border-border'>
-            <CardHeader className="flex flex-row justify-between">
+            <CardHeader className='flex flex-row justify-between'>
               <div>
                 <CardTitle>Courses</CardTitle>
                 <CardDescription>Manage all courses</CardDescription>
               </div>
-              <AddModal triggerText='Add' title='Add Course' className="bg-black text-white px-4 py-1 rounded-md">
-                  <CourseAdd />
-                </AddModal>
+              <AddModal
+                triggerText='Add'
+                title='Add Course'
+                className='bg-black text-white px-4 py-1 rounded-md'
+              >
+                <CourseAdd />
+              </AddModal>
             </CardHeader>
             <CardContent className='p-0'>
               <div className='rounded-lg border border-border overflow-hidden'>

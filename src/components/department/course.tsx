@@ -15,10 +15,22 @@ import {
 } from "@/components/ui/form";
 import { z } from "zod";
 
+interface Program {
+  id: string;
+  name: string;
+}
+
+interface Section {
+  id: string;
+  name: string;
+  programId: string;
+}
+
 const CourseAdd = () => {
   const [isLoading, setLoading] = useState(false);
-  const [programs, setPrograms] = useState<{ id: string; name: string }[]>([]);
-  const [sections, setSections] = useState<{ id: string; name: string }[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [filteredSections, setFilteredSections] = useState<Section[]>([]);
 
   const form = useForm({
     resolver: zodResolver(CreateCourseSchema),
@@ -30,23 +42,57 @@ const CourseAdd = () => {
     },
   });
 
+  const selectedProgramId = form.watch("programId");
+
   useEffect(() => {
     const fetchPrograms = async () => {
-      const res = await fetch("/api/create/department/program");
-      const data = await res.json();
-      setPrograms(data);
+      try {
+        const res = await fetch("/api/create/department/program");
+        const data = await res.json();
+        setPrograms(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error fetching programs:", error);
+        setPrograms([]);
+      }
     };
     fetchPrograms();
   }, []);
 
   useEffect(() => {
     const fetchSections = async () => {
-      const res = await fetch("/api/create/department/section");
-      const data = await res.json();
-      setSections(data);
+      try {
+        const res = await fetch("/api/create/department/section");
+        const data = await res.json();
+        setSections(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error fetching sections:", error);
+        setSections([]);
+      }
     };
     fetchSections();
   }, []);
+
+  // Filter sections based on selected program
+  useEffect(() => {
+    if (selectedProgramId) {
+      const filtered = sections.filter(
+        (section) => section.programId === selectedProgramId
+      );
+      setFilteredSections(filtered);
+
+      // Reset section selection if current selection is not in filtered list
+      const currentSectionId = form.getValues("sectionId");
+      if (
+        currentSectionId &&
+        !filtered.some((s) => s.id === currentSectionId)
+      ) {
+        form.setValue("sectionId", "");
+      }
+    } else {
+      setFilteredSections([]);
+      form.setValue("sectionId", "");
+    }
+  }, [selectedProgramId, sections, form]);
 
   const onSubmit = async (data: z.infer<typeof CreateCourseSchema>) => {
     setLoading(true);
@@ -58,23 +104,28 @@ const CourseAdd = () => {
       sectionId: data.sectionId,
     };
 
-    const response = await fetch("/api/create/department/course", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch("/api/create/department/course", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const resData = await response.json();
+      const resData = await response.json();
 
-    if (!response.ok) {
-      console.error("Error creating account:", resData.message);
+      if (!response.ok) {
+        console.error("Error creating course:", resData.message);
+        setLoading(false);
+        return;
+      }
+
+      console.log("Course created successfully:", resData);
+      form.reset();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setLoading(false);
-    console.log("Course created successfully:", resData);
-    form.reset();
   };
 
   return (
@@ -119,7 +170,10 @@ const CourseAdd = () => {
               <FormItem>
                 <FormLabel>Program</FormLabel>
                 <FormControl>
-                  <select {...field} className='w-full border rounded p-2'>
+                  <select
+                    {...field}
+                    className='w-full border rounded p-2 bg-background'
+                  >
                     <option value=''>Select Program</option>
                     {programs.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -140,9 +194,21 @@ const CourseAdd = () => {
               <FormItem>
                 <FormLabel>Section</FormLabel>
                 <FormControl>
-                  <select {...field} className='w-full border rounded p-2'>
-                    <option value=''>Select Section</option>
-                    {sections.map((s) => (
+                  <select
+                    {...field}
+                    disabled={
+                      !selectedProgramId || filteredSections.length === 0
+                    }
+                    className='w-full border rounded p-2 bg-background disabled:opacity-50 disabled:cursor-not-allowed'
+                  >
+                    <option value=''>
+                      {!selectedProgramId
+                        ? "Select a program first"
+                        : filteredSections.length === 0
+                        ? "No sections available for this program"
+                        : "Select Section"}
+                    </option>
+                    {filteredSections.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.name}
                       </option>
@@ -155,7 +221,7 @@ const CourseAdd = () => {
           />
         </div>
 
-        <Button type='submit' className='w-full'>
+        <Button type='submit' className='w-full' disabled={isLoading}>
           {isLoading ? "Creating..." : "Create Course"}
         </Button>
       </form>

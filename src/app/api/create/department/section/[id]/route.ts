@@ -18,12 +18,35 @@ export async function DELETE(
 
     const section = await prisma.section.findUnique({
       where: { id },
+      include: {
+        courses: true,
+        assign: true,
+      },
     });
 
     if (!section) {
       return NextResponse.json(
         { message: "Section not found" },
         { status: 404 }
+      );
+    }
+
+    // Check for dependencies
+    if (section.courses.length > 0) {
+      return NextResponse.json(
+        {
+          message: `Cannot delete section. It has ${section.courses.length} course(s) assigned.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (section.assign.length > 0) {
+      return NextResponse.json(
+        {
+          message: `Cannot delete section. It has ${section.assign.length} teacher assignment(s).`,
+        },
+        { status: 400 }
       );
     }
 
@@ -38,7 +61,10 @@ export async function DELETE(
   } catch (error) {
     console.error("Delete section error:", error);
     return NextResponse.json(
-      { message: "Failed to delete section" },
+      {
+        message: "Failed to delete section",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
@@ -94,7 +120,10 @@ export async function PATCH(
   } catch (error) {
     console.error("Update section error:", error);
     return NextResponse.json(
-      { message: "Failed to update section" },
+      {
+        message: "Failed to update section",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
