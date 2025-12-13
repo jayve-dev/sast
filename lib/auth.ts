@@ -111,6 +111,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.idNumber = (user as any).idNumber;
         token.fullName = (user as any).fullName;
         token.role = (user as any).role;
+        token.programId = (user as any).programId || null;
         token.studentId = (user as any).studentId || null;
       }
       return token;
@@ -120,6 +121,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         console.log("📝 Creating session for user:", token.id);
         session.user.id = token.id as string;
         session.user.idNumber = token.idNumber as number;
+        session.user.programId = token.studentId as string | undefined;
         session.user.fullName = token.fullName as string;
         session.user.role = token.role as string;
         session.user.studentId =
