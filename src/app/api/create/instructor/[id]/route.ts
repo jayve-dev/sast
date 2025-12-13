@@ -12,22 +12,21 @@ export async function DELETE(
     console.log("DELETE request received for instructor ID:", id);
 
     if (!id) {
-      console.error("No ID provided");
       return NextResponse.json(
         { message: "Instructor ID is required" },
         { status: 400 }
       );
     }
 
-    // Check if instructor exists
+    // First, get the instructor with all related data
     const instructor = await prisma.teacher.findUnique({
       where: { id },
       include: {
         assigns: true,
+        responses: true,
+        suggestions: true,
       },
     });
-
-    console.log("Instructor found:", instructor);
 
     if (!instructor) {
       return NextResponse.json(
@@ -36,52 +35,71 @@ export async function DELETE(
       );
     }
 
-    // Get all assignment IDs for this teacher
-    const assignmentIds = instructor.assigns.map((assignment) => assignment.id);
+    console.log("Instructor found:", instructor);
 
-    console.log("Assignment IDs to delete:", assignmentIds);
+    // Check if instructor can be deleted
+    if (instructor.responses.length > 0) {
+      return NextResponse.json(
+        {
+          message: `Cannot delete instructor. They have ${instructor.responses.length} response(s) in the system.`,
+        },
+        { status: 400 }
+      );
+    }
 
-    // Step 1: Delete all responses related to these assignments first
+    // Delete related records in the correct order
+    const assignmentIds = instructor.assigns.map((a) => a.id);
+
     if (assignmentIds.length > 0) {
+      console.log("Assignment IDs to delete:", assignmentIds);
+
+      // Step 1: Delete suggestions related to these assignments
+      const deletedSuggestions = await prisma.suggestion.deleteMany({
+        where: {
+          OR: [
+            { teacherId: id }, // Suggestions made by this teacher
+            { assignmentId: { in: assignmentIds } }, // Suggestions for this teacher's assignments
+          ],
+        },
+      });
+      console.log("Deleted suggestions:", deletedSuggestions.count);
+
+      // Step 2: Delete responses related to these assignments
       const deletedResponses = await prisma.response.deleteMany({
         where: {
-          assignmentId: {
-            in: assignmentIds,
-          },
+          OR: [
+            { teacherId: id }, // Responses for this teacher
+            { assignmentId: { in: assignmentIds } }, // Responses for this teacher's assignments
+          ],
         },
       });
       console.log("Deleted responses:", deletedResponses.count);
+
+      // Step 3: Delete teacher assignments
+      const deletedAssignments = await prisma.teachersAssigned.deleteMany({
+        where: { id: { in: assignmentIds } },
+      });
+      console.log("Deleted assignments:", deletedAssignments.count);
     }
 
-    // Step 2: Delete all teaching assignments
-    const deletedAssignments = await prisma.teachersAssigned.deleteMany({
-      where: { teacherId: id },
-    });
-
-    console.log("Deleted assignments:", deletedAssignments.count);
-
-    // Step 3: Delete the teacher
-    const deletedTeacher = await prisma.teacher.delete({
+    // Step 4: Finally, delete the instructor
+    await prisma.teacher.delete({
       where: { id },
     });
 
-    console.log("Deleted teacher:", deletedTeacher);
+    console.log("Instructor deleted successfully");
 
     return NextResponse.json(
-      {
-        message: "Instructor deleted successfully",
-        instructor: deletedTeacher,
-        deletedAssignments: deletedAssignments.count,
-        deletedResponses: assignmentIds.length,
-      },
+      { message: "Instructor deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
     console.error("Delete instructor error:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to delete instructor";
     return NextResponse.json(
-      { message: errorMessage, error: String(error) },
+      {
+        message: "Failed to delete instructor",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
@@ -95,10 +113,7 @@ export async function PATCH(
     const params = await context.params;
     const { id } = params;
     const body = await req.json();
-    const { facultyId, fullName, assignments } = body;
-
-    console.log("PATCH request received for instructor ID:", id);
-    console.log("Update data:", { facultyId, fullName, assignments });
+    const { facultyId, fullName } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -107,12 +122,15 @@ export async function PATCH(
       );
     }
 
-    // Check if instructor exists
+    if (!fullName || !facultyId) {
+      return NextResponse.json(
+        { message: "Full name and faculty ID are required" },
+        { status: 400 }
+      );
+    }
+
     const instructor = await prisma.teacher.findUnique({
       where: { id },
-      include: {
-        assigns: true,
-      },
     });
 
     if (!instructor) {
@@ -122,94 +140,27 @@ export async function PATCH(
       );
     }
 
-    // Check if new faculty ID is already taken
-    if (facultyId && facultyId !== instructor.facultyId.toString()) {
+    // Check if facultyId is being changed and if new facultyId already exists
+    if (facultyId !== instructor.facultyId) {
       const existingInstructor = await prisma.teacher.findUnique({
         where: { facultyId: Number(facultyId) },
       });
 
-      if (existingInstructor && existingInstructor.id !== id) {
+      if (existingInstructor) {
         return NextResponse.json(
-          { message: "Faculty ID already in use" },
-          { status: 400 }
+          { message: "Faculty ID already exists" },
+          { status: 409 }
         );
       }
     }
 
-    // Update the instructor basic info
-    const updateData: {
-      facultyId?: number;
-      fullName?: string;
-    } = {};
-
-    if (facultyId) updateData.facultyId = Number(facultyId);
-    if (fullName) updateData.fullName = fullName;
-
-    await prisma.teacher.update({
+    const updatedInstructor = await prisma.teacher.update({
       where: { id },
-      data: updateData,
-    });
-
-    // Update assignments if provided
-    if (assignments && Array.isArray(assignments) && assignments.length > 0) {
-      console.log("Updating assignments:", assignments);
-
-      // Get all existing assignment IDs for this teacher
-      const existingAssignmentIds = instructor.assigns.map((a) => a.id);
-
-      // Delete responses for existing assignments before deleting assignments
-      if (existingAssignmentIds.length > 0) {
-        await prisma.response.deleteMany({
-          where: {
-            assignmentId: {
-              in: existingAssignmentIds,
-            },
-          },
-        });
-        console.log("Deleted responses for existing assignments");
-      }
-
-      // Delete all existing assignments for this teacher
-      await prisma.teachersAssigned.deleteMany({
-        where: { teacherId: id },
-      });
-
-      // Create new assignments
-      const createData = assignments.map(
-        (assignment: {
-          programId: string;
-          courseId: string;
-          sectionId: string;
-        }) => ({
-          teacherId: id,
-          programId: assignment.programId,
-          courseId: assignment.courseId,
-          sectionId: assignment.sectionId,
-        })
-      );
-
-      console.log("Creating assignments:", createData);
-
-      await prisma.teachersAssigned.createMany({
-        data: createData,
-      });
-    }
-
-    // Fetch updated instructor with all related data
-    const updatedInstructor = await prisma.teacher.findUnique({
-      where: { id },
-      include: {
-        assigns: {
-          include: {
-            Course: true,
-            Section: true,
-            Program: true,
-          },
-        },
+      data: {
+        fullName,
+        facultyId: Number(facultyId),
       },
     });
-
-    console.log("Updated instructor:", updatedInstructor);
 
     return NextResponse.json(
       {
@@ -220,10 +171,11 @@ export async function PATCH(
     );
   } catch (error) {
     console.error("Update instructor error:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to update instructor";
     return NextResponse.json(
-      { message: errorMessage, error: String(error) },
+      {
+        message: "Failed to update instructor",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
