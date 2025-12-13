@@ -174,7 +174,7 @@ export default function AssessmentFlow() {
   }
 
   return (
-    <div className='min-h-screen bg-background p-6'>
+    <div className='min-h-screen bg-transparent px-2 py-1'>
       <div className='max-w-6xl mx-auto space-y-8'>
         {/* Header */}
         <div className='space-y-4'>

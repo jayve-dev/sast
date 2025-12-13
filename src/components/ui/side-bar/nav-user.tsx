@@ -17,7 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { LogoutModal } from "@/components/logout-modal";
+import { LogoutModalAdmin } from "@/components/admin/logout-modal";
 import { useSession } from "next-auth/react";
 
 export function NavUser({
@@ -109,7 +109,7 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               <LogOut />
-              <LogoutModal />
+              <LogoutModalAdmin />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

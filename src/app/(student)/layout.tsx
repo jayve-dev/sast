@@ -3,7 +3,6 @@ import "../globals.css";
 import { Header } from "@/components/student-side/side-bar/student-side-header";
 import { auth } from "../../../lib/auth";
 import { redirect } from "next/navigation";
-import { SideBar } from "@/components/student-side/side-bar/side-bar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,10 +29,9 @@ export default async function AuthLayout({
 
   return (
       <div
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen overflow-x-hidden`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen overflow-x-hidden bg-[#2A4759]`}
       >
-          <div className='w-full h-dvh flex flex-row items-center justify-center p-5 bg-[#2A4759] text-[#EEEEEE]'>
-            <SideBar />
+          <div className='w-full h-screen flex flex-row items-center justify-center p-5 text-[#EEEEEE]'>
             <div className='w-full h-full flex flex-col items-center justify-start gap-5'>
               <Header />
               {children}

@@ -8,6 +8,7 @@ declare module "next-auth" {
       fullName: string;
       role: string;
       studentId?: string;
+      programId?: string;
     };
   }
 
@@ -17,6 +18,7 @@ declare module "next-auth" {
     fullName: string;
     role: string;
     studentId?: string;
+    programId?: string;
   }
 }
 
@@ -27,5 +29,6 @@ declare module "next-auth/jwt" {
     fullName: string;
     role: string;
     studentId?: string;
+    programId?: string;
   }
 }
