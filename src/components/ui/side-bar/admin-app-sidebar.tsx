@@ -46,8 +46,8 @@ const data = {
       icon: NotepadText,
     },
     {
-      title: "Reports",
-      href: "/reports",
+      title: "Instructor Evaluations",
+      href: "/instructor-evaluations",
       icon: NotepadText,
     },
     {
