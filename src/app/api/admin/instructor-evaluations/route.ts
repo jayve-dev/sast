@@ -42,7 +42,7 @@ export async function GET() {
         (assign) => assign.responses
       );
 
-      // Group responses by category
+      // Group responses by category (overall)
       const categoryAverages: Record<
         string,
         {
@@ -112,13 +112,150 @@ export async function GET() {
         });
       });
 
-      // Get unique courses taught
-      const courses = teacher.assigns.map((assign) => ({
-        code: assign.Course.code,
-        name: assign.Course.name,
-        program: assign.Program.name,
-        section: assign.Section.name,
-      }));
+      // Group by Program
+      const programAverages: Record<
+        string,
+        {
+          programId: string;
+          programName: string;
+          totalScore: number;
+          count: number;
+          average: number;
+          responses: number;
+        }
+      > = {};
+
+      teacher.assigns.forEach((assign) => {
+        const programId = assign.Program.id;
+        const programName = assign.Program.name;
+
+        if (!programAverages[programId]) {
+          programAverages[programId] = {
+            programId,
+            programName,
+            totalScore: 0,
+            count: 0,
+            average: 0,
+            responses: 0,
+          };
+        }
+
+        assign.responses.forEach((response) => {
+          const score = response.Option?.value || 0;
+          programAverages[programId].totalScore += score;
+          programAverages[programId].count += 1;
+          programAverages[programId].responses += 1;
+        });
+
+        programAverages[programId].average =
+          programAverages[programId].count > 0
+            ? programAverages[programId].totalScore /
+              programAverages[programId].count
+            : 0;
+      });
+
+      // Group by Section
+      const sectionAverages: Record<
+        string,
+        {
+          sectionId: string;
+          sectionName: string;
+          programName: string;
+          totalScore: number;
+          count: number;
+          average: number;
+          responses: number;
+        }
+      > = {};
+
+      teacher.assigns.forEach((assign) => {
+        const sectionId = assign.Section.id;
+        const sectionName = assign.Section.name;
+        const programName = assign.Program.name;
+
+        if (!sectionAverages[sectionId]) {
+          sectionAverages[sectionId] = {
+            sectionId,
+            sectionName,
+            programName,
+            totalScore: 0,
+            count: 0,
+            average: 0,
+            responses: 0,
+          };
+        }
+
+        assign.responses.forEach((response) => {
+          const score = response.Option?.value || 0;
+          sectionAverages[sectionId].totalScore += score;
+          sectionAverages[sectionId].count += 1;
+          sectionAverages[sectionId].responses += 1;
+        });
+
+        sectionAverages[sectionId].average =
+          sectionAverages[sectionId].count > 0
+            ? sectionAverages[sectionId].totalScore /
+              sectionAverages[sectionId].count
+            : 0;
+      });
+
+      // Group by Course (with section details)
+      const courseAverages: Record<
+        string,
+        {
+          courseId: string;
+          courseCode: string;
+          courseName: string;
+          programName: string;
+          sectionName: string;
+          totalScore: number;
+          count: number;
+          average: number;
+          responses: number;
+          students: number;
+        }
+      > = {};
+
+      teacher.assigns.forEach((assign) => {
+        const key = `${assign.Course.id}-${assign.Section.id}`;
+        const courseId = assign.Course.id;
+        const courseCode = assign.Course.code;
+        const courseName = assign.Course.name;
+        const programName = assign.Program.name;
+        const sectionName = assign.Section.name;
+
+        if (!courseAverages[key]) {
+          courseAverages[key] = {
+            courseId,
+            courseCode,
+            courseName,
+            programName,
+            sectionName,
+            totalScore: 0,
+            count: 0,
+            average: 0,
+            responses: 0,
+            students: 0,
+          };
+        }
+
+        const uniqueStudents = new Set(
+          assign.responses.map((r) => r.studentId)
+        );
+        courseAverages[key].students = uniqueStudents.size;
+
+        assign.responses.forEach((response) => {
+          const score = response.Option?.value || 0;
+          courseAverages[key].totalScore += score;
+          courseAverages[key].count += 1;
+          courseAverages[key].responses += 1;
+        });
+
+        courseAverages[key].average =
+          courseAverages[key].count > 0
+            ? courseAverages[key].totalScore / courseAverages[key].count
+            : 0;
+      });
 
       // Calculate overall average
       const totalScore = Object.values(categoryAverages).reduce(
@@ -135,7 +272,6 @@ export async function GET() {
         id: teacher.id,
         facultyId: teacher.facultyId,
         fullName: teacher.fullName,
-        courses,
         totalResponses: allResponses.length,
         totalStudents: new Set(allResponses.map((r) => r.studentId)).size,
         overallAverage,
@@ -144,6 +280,9 @@ export async function GET() {
           average: cat.average,
           questions: Object.values(cat.questions),
         })),
+        programAverages: Object.values(programAverages),
+        sectionAverages: Object.values(sectionAverages),
+        courseAverages: Object.values(courseAverages),
       };
     });
 
