@@ -27,18 +27,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
       authorize: async (credentials): Promise<any> => {
         try {
-          console.log("🔐 Authorization attempt started");
-          console.log("📝 Received credentials:", {
-            idNumber: credentials?.idNumber,
-            hasPassword: !!credentials?.password,
-          });
-
           // Validate with Zod schema
           const { idNumber, password } = await SignInSchema.parseAsync(
             credentials
           );
-
-          console.log("✅ Schema validation passed");
 
           const idNumberInt = parseInt(idNumber, 10);
           if (Number.isNaN(idNumberInt)) {
@@ -59,14 +51,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             return null;
           }
 
-          console.log("✅ User found:", {
-            id: user.id,
-            idNumber: user.idNumber,
-            fullName: user.fullName,
-            role: user.role,
-            hasPassword: !!user.password,
-          });
-
           console.log("🔐 Comparing passwords...");
           const isValid = await bcrypt.compare(password, user.password);
 
@@ -74,8 +58,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             console.error("❌ Invalid password for user:", user.idNumber);
             return null;
           }
-
-          console.log("✅ Password valid! Login successful");
 
           return {
             id: user.id,

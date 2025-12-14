@@ -157,7 +157,7 @@ export default function AssessmentFlow() {
   // Show error state if student info not loaded
   if (!selection.studentId || !selection.programId) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
+      <div className='flex items-center justify-center h-dvh'>
         <div className='text-center space-y-4 max-w-md'>
           <div className='w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center'>
             <span className='text-red-600 text-2xl'>⚠️</span>
@@ -174,7 +174,7 @@ export default function AssessmentFlow() {
   }
 
   return (
-    <div className='min-h-screen bg-transparent px-2 py-1'>
+    <div className='h-dvh bg-transparent px-2 py-1'>
       <div className='max-w-6xl mx-auto space-y-8'>
         {/* Header */}
         <div className='space-y-4'>

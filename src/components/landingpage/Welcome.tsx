@@ -1,20 +1,19 @@
 "use client";
-import React, { useRef } from 'react'
+import React, { useRef } from "react";
 import Lottie, { LottieRefCurrentProps } from "lottie-react";
-import Header from './header';
-import Footer from './footer';
-import { Button } from '../ui/button';
-import animationData from "../../assets/Survey.json"
-
+import Header from "./header";
+import Footer from "./footer";
+import { Button } from "../ui/button";
+import animationData from "../../assets/Survey.json";
 
 const Welcome = () => {
-      const surveyImage = useRef<LottieRefCurrentProps>(null);
-    
+  const surveyImage = useRef<LottieRefCurrentProps>(null);
+
   return (
-    <div className='min-h-screen flex flex-col bg-[#FFFFE3]'>
+    <div className='h-dvh flex flex-col bg-[#FFFFE3]'>
       <Header />
-      <div className='flex-1 flex items-center justify-center p-20 w-full'>
-        <div className='flex flex-col md:flex-row items-center justify-between w-full gap-10'>
+      <div className='flex items-center justify-center w-full'>
+        <div className='mt-36 flex flex-col md:flex-row items-center justify-between max-w-[90%] gap-10 p-3'>
           <div className='flex flex-1 flex-col gap-2 '>
             <h1 className='font-bold text-4xl md:text-6xl leading-tight'>
               Welcome to Sast <br />
@@ -27,7 +26,23 @@ const Welcome = () => {
               Join us to streamline your survey processes and enhance your data
               collection.
             </p>
-            <Button className='w-fit'>Come and support us!</Button>
+          </div>
+          <div className='flex flex-col justify-center sm:hidden w-full gap-4'>
+            <a href='/signup'>
+              <Button
+                className='text-md text-white border-white hover:bg-white hover:text-black border p-4 hover:scale-105 transition-transform duration-200 w-full'
+              >
+                Sign up
+              </Button>
+            </a>
+
+            <a href='/signin'>
+              <Button
+                className='text-md hover:bg-white hover:text-black p-4 bg-gray-900 hover:scale-105 transition-transform duration-200 w-full'
+              >
+                Sign in
+              </Button>
+            </a>
           </div>
           <div className='flex-1 hidden md:flex items-center justify-center'>
             <Lottie
@@ -40,7 +55,7 @@ const Welcome = () => {
       </div>
       <Footer />
     </div>
-  )
-}
+  );
+};
 
-export { Welcome }
+export { Welcome };
