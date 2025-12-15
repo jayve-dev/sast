@@ -31,7 +31,7 @@ export default async function AuthLayout({
       <div
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-screen overflow-x-hidden bg-[#2A4759]`}
       >
-          <div className='w-full h-screen flex flex-row items-center justify-center p-5 text-[#EEEEEE]'>
+          <div className='w-full h-screen flex flex-row items-center justify-center p-3 text-[#EEEEEE]'>
             <div className='w-full h-full flex flex-col items-center justify-start gap-5'>
               <Header />
               {children}

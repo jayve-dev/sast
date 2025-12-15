@@ -99,7 +99,7 @@ const SectionSelection = () => {
   }
 
   return (
-    <div className='space-y-6 w-full'>
+    <div className='space-y-6 w-full p-2'>
       <div>
         <h2 className='text-2xl font-semibold text-foreground mb-2'>
           Select Your Section
