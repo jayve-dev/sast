@@ -248,32 +248,6 @@ export default function DepartmentDashboard() {
               Manage your academic programs, sections, and courses
             </p>
           </div>
-
-          {/* <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button className='gap-2'>
-                <Plus className='w-4 h-4' />
-                Add New
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align='end' className='w-56'>
-              <DropdownMenuItem onSelect={(e: Event) => e.preventDefault()}>
-                <AddModal triggerText='Program' title='Add Program'>
-                  <ProgramAdd />
-                </AddModal>
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={(e: Event) => e.preventDefault()}>
-                <AddModal triggerText='Section' title='Add Section'>
-                  <SectionAdd />
-                </AddModal>
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={(e: Event) => e.preventDefault()}>
-                <AddModal triggerText='Course' title='Add Course'>
-                  <CourseAdd />
-                </AddModal>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu> */}
         </div>
 
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
@@ -532,13 +506,12 @@ export default function DepartmentDashboard() {
             <CardContent className='p-0'>
               <div className='rounded-lg border border-border overflow-hidden'>
                 {/* Table Header */}
-                <div className='grid grid-cols-4 gap-4 px-6 py-4 bg-secondary/50 border-b border-border font-semibold text-sm text-foreground'>
+                <div className='grid grid-cols-3 gap-4 px-6 py-4 bg-secondary/50 border-b border-border font-semibold text-sm text-foreground'>
                   <div>Code</div>
-                  <div>Name</div>
                   <div></div>
                   <div className='text-right'>Actions</div>
                 </div>
-
+                
                 {/* Table Body */}
                 <div className='divide-y divide-border'>
                   {courses.length === 0 ? (
@@ -549,12 +522,11 @@ export default function DepartmentDashboard() {
                     courses.map((course) => (
                       <div
                         key={course.id}
-                        className='grid grid-cols-4 gap-4 px-6 py-4 items-center hover:bg-secondary/30 transition-colors'
+                        className='grid grid-cols-3 gap-4 px-6 py-4 items-center hover:bg-secondary/30 transition-colors'
                       >
                         <div className='font-medium text-foreground'>
                           {course.code}
                         </div>
-                        <div className='text-foreground'>{course.name}</div>
                         <div></div>
                         <div className='flex justify-end'>
                           <DropdownMenu>
