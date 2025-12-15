@@ -163,7 +163,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className='container max-w-4xl mx-auto p-6 space-y-6'>
+    <div className='container max-w-4xl mx-auto p-1 space-y-6'>
       <div className='flex flex-row justify-between items-center'>
         <div>
           <h1 className='text-3xl font-bold'>Account Settings</h1>

@@ -174,8 +174,8 @@ export default function AssessmentFlow() {
   }
 
   return (
-    <div className='h-dvh bg-transparent px-2 py-1'>
-      <div className='max-w-6xl mx-auto space-y-8'>
+    <div className='h-dvh bg-transparent py-1'>
+      <div className='space-y-8'>
         {/* Header */}
         <div className='space-y-4'>
           <div className='flex items-center justify-between'>
@@ -274,7 +274,7 @@ export default function AssessmentFlow() {
         </div>
 
         {/* Content */}
-        <div className='bg-card rounded-xl border border-border p-6'>
+        <div className='bg-card rounded-xl border border-border p-1'>
           {currentStep === 1 && <SectionSelection />}
           {currentStep === 2 && <CourseSelection />}
           {currentStep === 3 && <InstructorsSelection />}
@@ -303,6 +303,7 @@ export default function AssessmentFlow() {
             </div>
           </div>
         )}
+
       </div>
     </div>
   );

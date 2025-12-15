@@ -246,8 +246,8 @@ export default function StudentSurveyPage({
   }
 
   return (
-    <div className='min-h-screen w-full bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8'>
-      <div className='max-w-4xl mx-auto'>
+    <div className='min-h-screen w-full bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl'>
+      <div>
         {/* Header */}
         <div className='bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6'>
           <h1 className='text-3xl md:text-4xl font-bold text-gray-800 mb-2'>
@@ -309,7 +309,7 @@ export default function StudentSurveyPage({
                 value={suggestion}
                 onChange={(e) => setSuggestion(e.target.value)}
                 placeholder='Write your feedback or suggestions here... (optional)'
-                className='min-h-[200px] resize-none text-base p-4 border-2 border-gray-200 focus:border-indigo-500 rounded-xl'
+                className='min-h-50 resize-none text-base p-4 border-2 border-gray-200 focus:border-indigo-500 rounded-xl'
                 maxLength={1000}
               />
               <div className='flex justify-between items-center text-sm'>
