@@ -13,7 +13,7 @@ const Welcome = () => {
     <div className='h-dvh flex flex-col bg-[#FFFFE3]'>
       <Header />
       <div className='flex items-center justify-center w-full'>
-        <div className='mt-36 flex flex-col md:flex-row items-center justify-between max-w-[90%] gap-10 p-3'>
+        <div className='mt-36 sm:mt-0 flex flex-col md:flex-row items-center justify-between max-w-[90%] gap-10 p-3'>
           <div className='flex flex-1 flex-col gap-2 '>
             <h1 className='font-bold text-4xl md:text-6xl leading-tight'>
               Welcome to Sast <br />

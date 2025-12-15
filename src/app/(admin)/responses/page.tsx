@@ -244,7 +244,7 @@ export default function ResponsesPage() {
   }
 
   return (
-    <div className='w-full min-h-screen bg-background px-6'>
+    <div className='w-full min-h-screen bg-background'>
       <div className='max-w-7xl mx-auto space-y-6'>
         {/* Header */}
         <div className='flex items-center justify-between'>
@@ -473,9 +473,6 @@ export default function ResponsesPage() {
                           <div className='space-y-1'>
                             <div className='font-medium'>
                               {assessment.courseCode}
-                            </div>
-                            <div className='text-sm text-muted-foreground'>
-                              {assessment.courseName}
                             </div>
                           </div>
                         </TableCell>
