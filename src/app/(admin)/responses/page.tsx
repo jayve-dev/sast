@@ -33,6 +33,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -47,6 +57,8 @@ import {
   Loader2,
   Download,
   MessageSquare,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -95,6 +107,7 @@ export default function ResponsesPage() {
     teachers: [],
   });
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProgram, setSelectedProgram] = useState<string>("");
   const [selectedSection, setSelectedSection] = useState<string>("");
@@ -102,9 +115,15 @@ export default function ResponsesPage() {
   const [selectedTeacher, setSelectedTeacher] = useState<string>("");
   const [selectedAssessment, setSelectedAssessment] =
     useState<Assessment | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
+  const [assessmentToDelete, setAssessmentToDelete] =
+    useState<Assessment | null>(null);
+  const [surveyActive, setSurveyActive] = useState(false);
 
   useEffect(() => {
     fetchResponses();
+    checkSurveyStatus();
   }, []);
 
   useEffect(() => {
@@ -117,6 +136,18 @@ export default function ResponsesPage() {
     selectedCourse,
     selectedTeacher,
   ]);
+
+  const checkSurveyStatus = async () => {
+    try {
+      const response = await fetch("/api/admin/survey-status");
+      if (response.ok) {
+        const data = await response.json();
+        setSurveyActive(data.isActive);
+      }
+    } catch (error) {
+      console.error("Error checking survey status:", error);
+    }
+  };
 
   const fetchResponses = async () => {
     try {
@@ -182,6 +213,70 @@ export default function ResponsesPage() {
     setSelectedSection("");
     setSelectedCourse("");
     setSelectedTeacher("");
+  };
+
+  const handleDeleteIndividual = async () => {
+    if (!assessmentToDelete) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch("/api/admin/responses", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          studentId: assessmentToDelete.studentId,
+          teacherId: assessmentToDelete.teacherId,
+          assignmentId: assessmentToDelete.assignmentId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete response");
+      }
+
+      toast.success("Response deleted successfully");
+      fetchResponses();
+      setDeleteDialogOpen(false);
+      setAssessmentToDelete(null);
+    } catch (error) {
+      console.error("Error deleting response:", error);
+      toast.error("Failed to delete response");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (surveyActive) {
+      toast.error("Cannot delete responses while survey is active");
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const response = await fetch("/api/admin/responses?deleteAll=true", {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to delete all responses");
+      }
+
+      toast.success(`Successfully deleted all responses (${data.deleted} records)`);
+      fetchResponses();
+      setDeleteAllDialogOpen(false);
+    } catch (error) {
+      console.error("Error deleting all responses:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete all responses"
+      );
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const exportToCSV = () => {
@@ -265,11 +360,36 @@ export default function ResponsesPage() {
               View all student assessment submissions and suggestions
             </p>
           </div>
-          <Button onClick={exportToCSV} className='gap-2'>
-            <Download className='w-4 h-4' />
-            Export CSV
-          </Button>
+          <div className='flex gap-2'>
+            <Button
+              onClick={() => setDeleteAllDialogOpen(true)}
+              variant='destructive'
+              className='gap-2'
+              disabled={assessments.length === 0 || surveyActive}
+            >
+              <Trash2 className='w-4 h-4' />
+              Delete All
+            </Button>
+            <Button onClick={exportToCSV} className='gap-2'>
+              <Download className='w-4 h-4' />
+              Export CSV
+            </Button>
+          </div>
         </div>
+
+        {/* Survey Status Warning */}
+        {surveyActive && (
+          <Card className='border-yellow-500 bg-yellow-50 dark:bg-yellow-950'>
+            <CardContent className='pt-6'>
+              <div className='flex items-center gap-2 text-yellow-800 dark:text-yellow-200'>
+                <AlertTriangle className='w-5 h-5' />
+                <p className='font-medium'>
+                  Survey is currently active. Delete All is disabled to protect ongoing data collection.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Cards */}
         <div className='grid grid-cols-1 md:grid-cols-5 gap-4'>
@@ -468,7 +588,7 @@ export default function ResponsesPage() {
                       <TableHead>Teacher</TableHead>
                       <TableHead>Course</TableHead>
                       <TableHead>Program/Section</TableHead>
-                      <TableHead>Submitted</TableHead>
+                      {/* <TableHead>Submitted</TableHead> */}
                       <TableHead>Responses</TableHead>
                       <TableHead>Avg Score</TableHead>
                       <TableHead className='text-center'>Suggestion</TableHead>
@@ -506,7 +626,7 @@ export default function ResponsesPage() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        {/* <TableCell>
                           <div className='flex items-center gap-2 text-sm text-muted-foreground'>
                             <Calendar className='w-4 h-4' />
                             {format(
@@ -514,7 +634,7 @@ export default function ResponsesPage() {
                               "MMM dd, yyyy"
                             )}
                           </div>
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell>
                           <Badge>{assessment.responseCount}</Badge>
                         </TableCell>
@@ -534,168 +654,180 @@ export default function ResponsesPage() {
                           )}
                         </TableCell>
                         <TableCell className='text-right'>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() =>
-                                  setSelectedAssessment(assessment)
-                                }
-                              >
-                                <Eye className='w-4 h-4 mr-2' />
-                                View
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className='max-w-4xl max-h-[80vh] overflow-y-auto'>
-                              <DialogHeader>
-                                <DialogTitle>Assessment Details</DialogTitle>
-                                <DialogDescription>
-                                  Detailed view of student responses and
-                                  suggestions
-                                </DialogDescription>
-                              </DialogHeader>
+                          <div className='flex items-center justify-end gap-2'>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant='ghost'
+                                  size='sm'
+                                  onClick={() =>
+                                    setSelectedAssessment(assessment)
+                                  }
+                                >
+                                  <Eye className='w-4 h-4 mr-2' />
+                                  View
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className='max-w-4xl max-h-[80vh] overflow-y-auto'>
+                                <DialogHeader>
+                                  <DialogTitle>Assessment Details</DialogTitle>
+                                  <DialogDescription>
+                                    Detailed view of student responses and
+                                    suggestions
+                                  </DialogDescription>
+                                </DialogHeader>
 
-                              {selectedAssessment && (
-                                <div className='space-y-6'>
-                                  {/* Header Info */}
-                                  <div className='grid grid-cols-2 gap-4 p-4 bg-secondary/50 rounded-lg'>
-                                    <div className='flex items-center gap-2'>
-                                      <User className='w-4 h-4 text-muted-foreground' />
-                                      <div>
-                                        <div className='text-sm text-muted-foreground'>
-                                          Student
-                                        </div>
-                                        <div className='font-medium'>
-                                          {selectedAssessment.studentName}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className='flex items-center gap-2'>
-                                      <Award className='w-4 h-4 text-muted-foreground' />
-                                      <div>
-                                        <div className='text-sm text-muted-foreground'>
-                                          Teacher
-                                        </div>
-                                        <div className='font-medium'>
-                                          {selectedAssessment.teacherName}
+                                {selectedAssessment && (
+                                  <div className='space-y-6'>
+                                    {/* Header Info */}
+                                    <div className='grid grid-cols-2 gap-4 p-4 bg-secondary/50 rounded-lg'>
+                                      <div className='flex items-center gap-2'>
+                                        <User className='w-4 h-4 text-muted-foreground' />
+                                        <div>
+                                          <div className='text-sm text-muted-foreground'>
+                                            Student
+                                          </div>
+                                          <div className='font-medium'>
+                                            {selectedAssessment.studentName}
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                    <div className='flex items-center gap-2'>
-                                      <BookOpen className='w-4 h-4 text-muted-foreground' />
-                                      <div>
-                                        <div className='text-sm text-muted-foreground'>
-                                          Course
-                                        </div>
-                                        <div className='font-medium'>
-                                          {selectedAssessment.courseCode} -{" "}
-                                          {selectedAssessment.courseName}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className='flex items-center gap-2'>
-                                      <Calendar className='w-4 h-4 text-muted-foreground' />
-                                      <div>
-                                        <div className='text-sm text-muted-foreground'>
-                                          Submitted
-                                        </div>
-                                        <div className='font-medium'>
-                                          {format(
-                                            new Date(
-                                              selectedAssessment.submittedAt
-                                            ),
-                                            "MMM dd, yyyy HH:mm"
-                                          )}
+                                      <div className='flex items-center gap-2'>
+                                        <Award className='w-4 h-4 text-muted-foreground' />
+                                        <div>
+                                          <div className='text-sm text-muted-foreground'>
+                                            Teacher
+                                          </div>
+                                          <div className='font-medium'>
+                                            {selectedAssessment.teacherName}
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Suggestion Section */}
-                                  {selectedAssessment.hasSuggestion &&
-                                    selectedAssessment.suggestionContent && (
-                                      <>
-                                        <Card className='border-primary/50 bg-primary/5'>
-                                          <CardHeader>
-                                            <CardTitle className='text-base flex items-center gap-2'>
-                                              <MessageSquare className='w-4 h-4' />
-                                              Student Suggestion
-                                            </CardTitle>
-                                            {selectedAssessment.suggestionDate && (
-                                              <CardDescription>
-                                                Submitted on{" "}
-                                                {format(
-                                                  new Date(
-                                                    selectedAssessment.suggestionDate
-                                                  ),
-                                                  "MMM dd, yyyy 'at' HH:mm"
-                                                )}
-                                              </CardDescription>
+                                      <div className='flex items-center gap-2'>
+                                        <BookOpen className='w-4 h-4 text-muted-foreground' />
+                                        <div>
+                                          <div className='text-sm text-muted-foreground'>
+                                            Course
+                                          </div>
+                                          <div className='font-medium'>
+                                            {selectedAssessment.courseCode} -{" "}
+                                            {selectedAssessment.courseName}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className='flex items-center gap-2'>
+                                        <Calendar className='w-4 h-4 text-muted-foreground' />
+                                        <div>
+                                          <div className='text-sm text-muted-foreground'>
+                                            Submitted
+                                          </div>
+                                          <div className='font-medium'>
+                                            {format(
+                                              new Date(
+                                                selectedAssessment.submittedAt
+                                              ),
+                                              "MMM dd, yyyy HH:mm"
                                             )}
-                                          </CardHeader>
-                                          <CardContent>
-                                            <p className='text-sm whitespace-pre-wrap'>
-                                              {
-                                                selectedAssessment.suggestionContent
-                                              }
-                                            </p>
-                                          </CardContent>
-                                        </Card>
-                                        <Separator />
-                                      </>
-                                    )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
 
-                                  {/* Responses by Category */}
-                                  <div className='space-y-4'>
-                                    <h3 className='font-semibold text-lg'>
-                                      Evaluation Responses
-                                    </h3>
-                                    {Object.entries(
-                                      groupResponsesByCategory(
-                                        selectedAssessment.responses
-                                      )
-                                    ).map(
-                                      ([category, responses]: [
-                                        string,
-                                        any
-                                      ]) => (
-                                        <Card key={category}>
-                                          <CardHeader>
-                                            <CardTitle className='text-base'>
-                                              {category}
-                                            </CardTitle>
-                                          </CardHeader>
-                                          <CardContent className='space-y-3'>
-                                            {responses.map(
-                                              (response: any, idx: number) => (
-                                                <div
-                                                  key={idx}
-                                                  className='pb-3 border-b last:border-0 last:pb-0'
-                                                >
-                                                  <p className='text-sm font-medium mb-2'>
-                                                    {response.question}
-                                                  </p>
-                                                  <div className='flex items-center justify-between'>
-                                                    <span className='text-sm text-muted-foreground'>
-                                                      {response.answer}
-                                                    </span>
-                                                    <Badge variant='secondary'>
-                                                      {response.value}
-                                                    </Badge>
+                                    {/* Suggestion Section */}
+                                    {selectedAssessment.hasSuggestion &&
+                                      selectedAssessment.suggestionContent && (
+                                        <>
+                                          <Card className='border-primary/50 bg-primary/5'>
+                                            <CardHeader>
+                                              <CardTitle className='text-base flex items-center gap-2'>
+                                                <MessageSquare className='w-4 h-4' />
+                                                Student Suggestion
+                                              </CardTitle>
+                                              {selectedAssessment.suggestionDate && (
+                                                <CardDescription>
+                                                  Submitted on{" "}
+                                                  {format(
+                                                    new Date(
+                                                      selectedAssessment.suggestionDate
+                                                    ),
+                                                    "MMM dd, yyyy 'at' HH:mm"
+                                                  )}
+                                                </CardDescription>
+                                              )}
+                                            </CardHeader>
+                                            <CardContent>
+                                              <p className='text-sm whitespace-pre-wrap'>
+                                                {
+                                                  selectedAssessment.suggestionContent
+                                                }
+                                              </p>
+                                            </CardContent>
+                                          </Card>
+                                          <Separator />
+                                        </>
+                                      )}
+
+                                    {/* Responses by Category */}
+                                    <div className='space-y-4'>
+                                      <h3 className='font-semibold text-lg'>
+                                        Evaluation Responses
+                                      </h3>
+                                      {Object.entries(
+                                        groupResponsesByCategory(
+                                          selectedAssessment.responses
+                                        )
+                                      ).map(
+                                        ([category, responses]: [
+                                          string,
+                                          any
+                                        ]) => (
+                                          <Card key={category}>
+                                            <CardHeader>
+                                              <CardTitle className='text-base'>
+                                                {category}
+                                              </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className='space-y-3'>
+                                              {responses.map(
+                                                (response: any, idx: number) => (
+                                                  <div
+                                                    key={idx}
+                                                    className='pb-3 border-b last:border-0 last:pb-0'
+                                                  >
+                                                    <p className='text-sm font-medium mb-2'>
+                                                      {response.question}
+                                                    </p>
+                                                    <div className='flex items-center justify-between'>
+                                                      <span className='text-sm text-muted-foreground'>
+                                                        {response.answer}
+                                                      </span>
+                                                      <Badge variant='secondary'>
+                                                        {response.value}
+                                                      </Badge>
+                                                    </div>
                                                   </div>
-                                                </div>
-                                              )
-                                            )}
-                                          </CardContent>
-                                        </Card>
-                                      )
-                                    )}
+                                                )
+                                              )}
+                                            </CardContent>
+                                          </Card>
+                                        )
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
-                            </DialogContent>
-                          </Dialog>
+                                )}
+                              </DialogContent>
+                            </Dialog>
+                            <Button
+                              variant='ghost'
+                              size='sm'
+                              onClick={() => {
+                                setAssessmentToDelete(assessment);
+                                setDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash2 className='w-4 h-4 text-destructive' />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -706,6 +838,94 @@ export default function ResponsesPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Individual Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Response</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this response from{" "}
+              <strong>{assessmentToDelete?.studentName}</strong> for{" "}
+              <strong>{assessmentToDelete?.teacherName}</strong>? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteIndividual}
+              disabled={deleting}
+              className='bg-destructive hover:bg-destructive/90'
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete All Dialog */}
+      <AlertDialog
+        open={deleteAllDialogOpen}
+        onOpenChange={setDeleteAllDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className='flex items-center gap-2'>
+              <AlertTriangle className='w-5 h-5 text-destructive' />
+              Delete All Responses
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {surveyActive ? (
+                <div className='space-y-2'>
+                  <p className='font-semibold text-destructive'>
+                    Cannot delete responses while survey is active!
+                  </p>
+                  <p>
+                    Please deactivate the survey first before deleting all
+                    responses.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p className='font-semibold mb-2'>
+                    This will permanently delete ALL {assessments.length}{" "}
+                    responses and suggestions in the database!
+                  </p>
+                  <p>
+                    This action cannot be undone. All student submissions and
+                    teacher evaluations will be lost.
+                  </p>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAll}
+              disabled={deleting || surveyActive}
+              className='bg-destructive hover:bg-destructive/90'
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+                  Deleting...
+                </>
+              ) : (
+                "Delete All"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

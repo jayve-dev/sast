@@ -73,7 +73,7 @@ export default function Questionnaire() {
   return (
     <div className='w-full min-h-full px-6'>
       <SurveyHeader onAddSurvey={() => setIsModalOpen(true)} />
-
+        
       <QuestionsList
         questions={questions}
         loading={loading}

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../lib/db";
+import { auth } from "../../../../../lib/auth";
 
 export async function GET() {
   try {
-    // Get all teachers with their assignments and responses
     const teachers = await prisma.teacher.findMany({
       include: {
         assigns: {
@@ -292,6 +292,98 @@ export async function GET() {
     return NextResponse.json(
       {
         message: "Failed to fetch instructor evaluations",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const session = await auth();
+
+    if (!session || session.user.role !== "ADMIN") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const deleteAll = searchParams.get("deleteAll");
+
+    // Handle Delete All
+    if (deleteAll === "true") {
+      // Check if survey is active
+      const surveyStatus = await prisma.surveyStatus.findFirst({
+        orderBy: { updatedAt: "desc" },
+      });
+
+      if (surveyStatus?.isActive) {
+        return NextResponse.json(
+          {
+            message: "Cannot delete evaluations while survey is active",
+          },
+          { status: 400 }
+        );
+      }
+
+      // Delete all responses and suggestions
+      const [deletedResponses, deletedSuggestions] = await prisma.$transaction([
+        prisma.response.deleteMany({}),
+        prisma.suggestion.deleteMany({}),
+      ]);
+
+      return NextResponse.json(
+        {
+          message: "All evaluations deleted successfully",
+          deleted: deletedResponses.count + deletedSuggestions.count,
+          responses: deletedResponses.count,
+          suggestions: deletedSuggestions.count,
+        },
+        { status: 200 }
+      );
+    }
+
+    // Handle Individual Instructor Delete
+    const body = await req.json();
+    const { teacherId } = body;
+
+    if (!teacherId) {
+      return NextResponse.json(
+        {
+          message: "Missing required field: teacherId",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Delete all responses and suggestions for this specific teacher
+    const [deletedResponses, deletedSuggestions] = await prisma.$transaction([
+      prisma.response.deleteMany({
+        where: {
+          teacherId,
+        },
+      }),
+      prisma.suggestion.deleteMany({
+        where: {
+          teacherId,
+        },
+      }),
+    ]);
+
+    return NextResponse.json(
+      {
+        message: "Instructor evaluations deleted successfully",
+        deleted: deletedResponses.count + deletedSuggestions.count,
+        responses: deletedResponses.count,
+        suggestions: deletedSuggestions.count,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Delete evaluations error:", error);
+    return NextResponse.json(
+      {
+        message: "Failed to delete evaluations",
         error: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }

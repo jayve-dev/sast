@@ -177,3 +177,99 @@ export async function GET(req: Request) {
     );
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const session = await auth();
+
+    if (!session || session.user.role !== "ADMIN") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const deleteAll = searchParams.get("deleteAll");
+
+    // Handle Delete All
+    if (deleteAll === "true") {
+      // Check if survey is active
+      const surveyStatus = await prisma.surveyStatus.findFirst({
+        orderBy: { updatedAt: "desc" },
+      });
+
+      if (surveyStatus?.isActive) {
+        return NextResponse.json(
+          {
+            message: "Cannot delete responses while survey is active",
+          },
+          { status: 400 }
+        );
+      }
+
+      // Delete all responses and suggestions
+      const [deletedResponses, deletedSuggestions] = await prisma.$transaction([
+        prisma.response.deleteMany({}),
+        prisma.suggestion.deleteMany({}),
+      ]);
+
+      return NextResponse.json(
+        {
+          message: "All responses and suggestions deleted successfully",
+          deleted: deletedResponses.count + deletedSuggestions.count,
+          responses: deletedResponses.count,
+          suggestions: deletedSuggestions.count,
+        },
+        { status: 200 }
+      );
+    }
+
+    // Handle Individual Delete
+    const body = await req.json();
+    const { studentId, teacherId, assignmentId } = body;
+
+    if (!studentId || !teacherId || !assignmentId) {
+      return NextResponse.json(
+        {
+          message: "Missing required fields: studentId, teacherId, assignmentId",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Delete responses and suggestions for this specific combination
+    const [deletedResponses, deletedSuggestions] = await prisma.$transaction([
+      prisma.response.deleteMany({
+        where: {
+          studentId,
+          teacherId,
+          assignmentId,
+        },
+      }),
+      prisma.suggestion.deleteMany({
+        where: {
+          studentId,
+          teacherId,
+          assignmentId,
+        },
+      }),
+    ]);
+
+    return NextResponse.json(
+      {
+        message: "Response deleted successfully",
+        deleted: deletedResponses.count + deletedSuggestions.count,
+        responses: deletedResponses.count,
+        suggestions: deletedSuggestions.count,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Delete responses error:", error);
+    return NextResponse.json(
+      {
+        message: "Failed to delete responses",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
