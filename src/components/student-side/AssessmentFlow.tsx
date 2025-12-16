@@ -7,7 +7,13 @@ import { CourseSelection } from "./course-selection";
 import { InstructorsSelection } from "./instructors-selection";
 import StudentSurveyPage from "./survey-form";
 import { Button } from "../ui/button";
-import { ChevronLeft, CheckCircle, Loader2, RefreshCw } from "lucide-react";
+import {
+  ChevronLeft,
+  CheckCircle,
+  Loader2,
+  RefreshCw,
+  AlertCircle,
+} from "lucide-react";
 import { Progress } from "../ui/progress";
 import { toast } from "sonner";
 
@@ -25,22 +31,48 @@ export default function AssessmentFlow() {
     id: string;
     name: string;
   } | null>(null);
+  const [surveyActive, setSurveyActive] = useState(true);
+  const [checkingSurvey, setCheckingSurvey] = useState(true);
+
+  // Check survey status
+  useEffect(() => {
+    const checkSurveyStatus = async () => {
+      try {
+        setCheckingSurvey(true);
+        const response = await fetch("/api/survey/status");
+
+        if (response.ok) {
+          const data = await response.json();
+          setSurveyActive(data.isActive);
+        }
+      } catch (error) {
+        console.error("Error checking survey status:", error);
+      } finally {
+        setCheckingSurvey(false);
+      }
+    };
+
+    checkSurveyStatus();
+
+    // Poll every 30 seconds to check if survey status changed
+    const interval = setInterval(checkSurveyStatus, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch student's program from their record
   useEffect(() => {
     const fetchStudentProgram = async () => {
       if (status === "authenticated" && session?.user) {
         try {
-          console.log("Session user:", session.user); // Debug log
+          console.log("Session user:", session.user);
 
-          // Get user ID from session
           const userId = session.user.id || (session.user as any).sub;
 
           if (!userId) {
             throw new Error("User ID not found in session");
           }
 
-          // First, fetch the user data to get their studentId
           const userResponse = await fetch(`/api/create/user/${userId}`);
 
           if (!userResponse.ok) {
@@ -50,7 +82,7 @@ export default function AssessmentFlow() {
           }
 
           const userData = await userResponse.json();
-          console.log("User data:", userData); // Debug log
+          console.log("User data:", userData);
 
           if (!userData.studentId) {
             toast.error("Your account is not linked to a student record");
@@ -58,7 +90,6 @@ export default function AssessmentFlow() {
             return;
           }
 
-          // Fetch student data to get their program
           const response = await fetch(
             `/api/create/student/${userData.studentId}`
           );
@@ -70,7 +101,7 @@ export default function AssessmentFlow() {
           }
 
           const studentData = await response.json();
-          console.log("Student data:", studentData); // Debug log
+          console.log("Student data:", studentData);
 
           if (studentData.program && studentData.programId) {
             setStudentProgram({
@@ -78,7 +109,6 @@ export default function AssessmentFlow() {
               name: studentData.program.name,
             });
 
-            // Automatically set the program in selection
             updateSelection({
               studentId: userId,
               studentName: userData.fullName || "",
@@ -128,7 +158,6 @@ export default function AssessmentFlow() {
       duration: 5000,
     });
 
-    // Reset but keep student info and program
     const studentId = selection.studentId;
     const studentName = selection.studentName;
     const programId = selection.programId;
@@ -143,12 +172,53 @@ export default function AssessmentFlow() {
   };
 
   // Show loading state
-  if (status === "loading" || !isReady) {
+  if (status === "loading" || !isReady || checkingSurvey) {
     return (
       <div className='flex items-center justify-center min-h-screen'>
         <div className='text-center space-y-4'>
           <Loader2 className='w-8 h-8 animate-spin mx-auto text-primary' />
           <p className='text-muted-foreground'>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show survey unavailable message
+  if (!surveyActive) {
+    return (
+      <div className='flex items-center justify-center min-h-screen p-4'>
+        <div className='max-w-md w-full space-y-6 text-center'>
+          <div className='w-20 h-20 mx-auto bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center'>
+            <AlertCircle className='w-10 h-10 text-orange-600 dark:text-orange-400' />
+          </div>
+
+          <div className='space-y-2'>
+            <h2 className='text-2xl font-bold text-foreground'>
+              Survey Not Available
+            </h2>
+            <p className='text-muted-foreground'>
+              The evaluation survey is currently not available. Please check
+              back later or contact your administrator.
+            </p>
+          </div>
+
+          <div className='bg-muted rounded-lg p-4 space-y-2'>
+            <p className='text-sm font-medium'>What you can do:</p>
+            <ul className='text-sm text-muted-foreground text-left space-y-1'>
+              <li>• Wait for the survey to be activated</li>
+              <li>• Contact your administrator for more information</li>
+              <li>• Check announcements for survey availability</li>
+            </ul>
+          </div>
+
+          <Button
+            variant='outline'
+            onClick={() => window.location.reload()}
+            className='gap-2'
+          >
+            <RefreshCw className='w-4 h-4' />
+            Refresh Page
+          </Button>
         </div>
       </div>
     );
@@ -303,7 +373,6 @@ export default function AssessmentFlow() {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

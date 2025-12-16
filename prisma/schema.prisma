@@ -63,6 +63,13 @@ model Response {
   teacher      Teacher          @relation(fields: [teacherId], references: [id])
 }
 
+model SurveyStatus {
+  id        String   @id @default(uuid())
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
 model Student {
   id        String   @id @default(uuid())
   idNumber  Int      @unique
