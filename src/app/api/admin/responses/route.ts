@@ -22,10 +22,9 @@ export async function GET(req: Request) {
         ...(teacherId && { teacherId }),
       },
       include: {
-        student: true, // User relation
-        teacher: true, // Teacher relation
+        student: true,
+        teacher: true,
         assignment: {
-          // TeachersAssigned relation
           include: {
             Course: true,
             Section: true,
@@ -33,19 +32,36 @@ export async function GET(req: Request) {
           },
         },
         Question: {
-          // Question relation (capital Q)
           include: {
             Category: true,
           },
         },
-        Option: true, // Option relation (capital O)
+        Option: true,
       },
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    // Filter by program, section, course if needed (client-side filtering)
+    // Get all suggestions
+    const suggestions = await prisma.suggestion.findMany({
+      include: {
+        student: true,
+        teacher: true,
+        assignment: {
+          include: {
+            Course: true,
+            Section: true,
+            Program: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    // Filter by program, section, course if needed
     let filteredResponses = responses;
     if (programId) {
       filteredResponses = filteredResponses.filter(
@@ -68,6 +84,14 @@ export async function GET(req: Request) {
       const key = `${response.studentId}-${response.assignmentId}`;
 
       if (!acc[key]) {
+        // Find matching suggestion for this student-teacher-assignment combo
+        const matchingSuggestion = suggestions.find(
+          (s) =>
+            s.studentId === response.studentId &&
+            s.teacherId === response.teacherId &&
+            s.assignmentId === response.assignmentId
+        );
+
         acc[key] = {
           studentId: response.studentId,
           studentName: response.student.fullName,
@@ -81,6 +105,9 @@ export async function GET(req: Request) {
           assignmentId: response.assignmentId,
           submittedAt: response.createdAt,
           responseCount: 0,
+          hasSuggestion: !!matchingSuggestion,
+          suggestionContent: matchingSuggestion?.content,
+          suggestionDate: matchingSuggestion?.createdAt,
           responses: [],
         };
       }
@@ -135,6 +162,7 @@ export async function GET(req: Request) {
           teachers,
         },
         total: assessments.length,
+        totalSuggestions: assessments.filter((a: any) => a.hasSuggestion).length,
       },
       { status: 200 }
     );

@@ -34,6 +34,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   FileText,
   Search,
@@ -45,6 +46,7 @@ import {
   Filter,
   Loader2,
   Download,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -62,6 +64,9 @@ type Assessment = {
   assignmentId: string;
   submittedAt: Date;
   responseCount: number;
+  hasSuggestion: boolean;
+  suggestionContent?: string;
+  suggestionDate?: Date;
   responses: Array<{
     questionId: string;
     question: string;
@@ -189,6 +194,8 @@ export default function ResponsesPage() {
       "Course",
       "Submitted At",
       "Response Count",
+      "Has Suggestion",
+      "Suggestion",
     ];
 
     const rows = filteredAssessments.map((a) => [
@@ -200,6 +207,8 @@ export default function ResponsesPage() {
       `${a.courseCode} - ${a.courseName}`,
       format(new Date(a.submittedAt), "MMM dd, yyyy HH:mm"),
       a.responseCount,
+      a.hasSuggestion ? "Yes" : "No",
+      a.suggestionContent ? `"${a.suggestionContent.replace(/"/g, '""')}"` : "",
     ]);
 
     const csvContent = [
@@ -244,7 +253,7 @@ export default function ResponsesPage() {
   }
 
   return (
-    <div className='w-full min-h-screen bg-background'>
+    <div className='w-full min-h-screen bg-background p-6'>
       <div className='max-w-7xl mx-auto space-y-6'>
         {/* Header */}
         <div className='flex items-center justify-between'>
@@ -253,7 +262,7 @@ export default function ResponsesPage() {
               Student Responses
             </h1>
             <p className='text-muted-foreground mt-1'>
-              View all student assessment submissions
+              View all student assessment submissions and suggestions
             </p>
           </div>
           <Button onClick={exportToCSV} className='gap-2'>
@@ -263,7 +272,7 @@ export default function ResponsesPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+        <div className='grid grid-cols-1 md:grid-cols-5 gap-4'>
           <Card>
             <CardHeader className='pb-3'>
               <CardTitle className='text-sm font-medium text-muted-foreground'>
@@ -313,6 +322,20 @@ export default function ResponsesPage() {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader className='pb-3'>
+              <CardTitle className='text-sm font-medium text-muted-foreground flex items-center gap-2'>
+                <MessageSquare className='w-4 h-4' />
+                Suggestions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='text-2xl font-bold'>
+                {assessments.filter((a) => a.hasSuggestion).length}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Filters */}
@@ -354,7 +377,6 @@ export default function ResponsesPage() {
                   <SelectValue placeholder='Program' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='all'>All Programs</SelectItem>
                   {filterOptions.programs.map((program) => (
                     <SelectItem key={program.id} value={program.name}>
                       {program.name}
@@ -371,7 +393,6 @@ export default function ResponsesPage() {
                   <SelectValue placeholder='Section' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='all'>All Sections</SelectItem>
                   {filterOptions.sections
                     .filter(
                       (section) =>
@@ -394,7 +415,6 @@ export default function ResponsesPage() {
                   <SelectValue placeholder='Course' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='all'>All Courses</SelectItem>
                   {filterOptions.courses.map((course) => (
                     <SelectItem key={course.id} value={course.code}>
                       {course.code} - {course.name}
@@ -411,7 +431,6 @@ export default function ResponsesPage() {
                   <SelectValue placeholder='Teacher' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='all'>All Teachers</SelectItem>
                   {filterOptions.teachers.map((teacher) => (
                     <SelectItem key={teacher.id} value={teacher.fullName}>
                       {teacher.fullName}
@@ -452,6 +471,7 @@ export default function ResponsesPage() {
                       <TableHead>Submitted</TableHead>
                       <TableHead>Responses</TableHead>
                       <TableHead>Avg Score</TableHead>
+                      <TableHead className='text-center'>Suggestion</TableHead>
                       <TableHead className='text-right'>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -503,6 +523,16 @@ export default function ResponsesPage() {
                             {getAverageScore(assessment.responses)}
                           </Badge>
                         </TableCell>
+                        <TableCell className='text-center'>
+                          {assessment.hasSuggestion ? (
+                            <Badge variant='default' className='gap-1'>
+                              <MessageSquare className='w-3 h-3' />
+                              Yes
+                            </Badge>
+                          ) : (
+                            <Badge variant='outline'>No</Badge>
+                          )}
+                        </TableCell>
                         <TableCell className='text-right'>
                           <Dialog>
                             <DialogTrigger asChild>
@@ -521,7 +551,8 @@ export default function ResponsesPage() {
                               <DialogHeader>
                                 <DialogTitle>Assessment Details</DialogTitle>
                                 <DialogDescription>
-                                  Detailed view of student responses
+                                  Detailed view of student responses and
+                                  suggestions
                                 </DialogDescription>
                               </DialogHeader>
 
@@ -581,8 +612,45 @@ export default function ResponsesPage() {
                                     </div>
                                   </div>
 
+                                  {/* Suggestion Section */}
+                                  {selectedAssessment.hasSuggestion &&
+                                    selectedAssessment.suggestionContent && (
+                                      <>
+                                        <Card className='border-primary/50 bg-primary/5'>
+                                          <CardHeader>
+                                            <CardTitle className='text-base flex items-center gap-2'>
+                                              <MessageSquare className='w-4 h-4' />
+                                              Student Suggestion
+                                            </CardTitle>
+                                            {selectedAssessment.suggestionDate && (
+                                              <CardDescription>
+                                                Submitted on{" "}
+                                                {format(
+                                                  new Date(
+                                                    selectedAssessment.suggestionDate
+                                                  ),
+                                                  "MMM dd, yyyy 'at' HH:mm"
+                                                )}
+                                              </CardDescription>
+                                            )}
+                                          </CardHeader>
+                                          <CardContent>
+                                            <p className='text-sm whitespace-pre-wrap'>
+                                              {
+                                                selectedAssessment.suggestionContent
+                                              }
+                                            </p>
+                                          </CardContent>
+                                        </Card>
+                                        <Separator />
+                                      </>
+                                    )}
+
                                   {/* Responses by Category */}
                                   <div className='space-y-4'>
+                                    <h3 className='font-semibold text-lg'>
+                                      Evaluation Responses
+                                    </h3>
                                     {Object.entries(
                                       groupResponsesByCategory(
                                         selectedAssessment.responses
