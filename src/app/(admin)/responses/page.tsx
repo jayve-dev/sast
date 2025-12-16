@@ -377,7 +377,6 @@ export default function ResponsesPage() {
                   <SelectValue placeholder='Program' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='all'>All Programs</SelectItem>
                   {filterOptions.programs.map((program) => (
                     <SelectItem key={program.id} value={program.name}>
                       {program.name}
@@ -394,7 +393,6 @@ export default function ResponsesPage() {
                   <SelectValue placeholder='Section' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='all'>All Sections</SelectItem>
                   {filterOptions.sections
                     .filter(
                       (section) =>
@@ -417,7 +415,6 @@ export default function ResponsesPage() {
                   <SelectValue placeholder='Course' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='all'>All Courses</SelectItem>
                   {filterOptions.courses.map((course) => (
                     <SelectItem key={course.id} value={course.code}>
                       {course.code} - {course.name}
@@ -434,7 +431,6 @@ export default function ResponsesPage() {
                   <SelectValue placeholder='Teacher' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='all'>All Teachers</SelectItem>
                   {filterOptions.teachers.map((teacher) => (
                     <SelectItem key={teacher.id} value={teacher.fullName}>
                       {teacher.fullName}
