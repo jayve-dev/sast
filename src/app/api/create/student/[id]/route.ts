@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "../../../../../../lib/db";
 import { auth } from "../../../../../../lib/auth";
 import bcrypt from "bcryptjs";
+import { Gender } from "@/generated/prisma";
 
 export async function GET(
   req: Request,
@@ -130,7 +131,7 @@ export async function PATCH(
     const params = await context.params;
     const { id } = params;
     const body = await req.json();
-    const { idNumber, fullName, programId, password } = body;
+    const { idNumber, fullName, programId, password, gender } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -173,11 +174,13 @@ export async function PATCH(
       idNumber?: number;
       fullName?: string;
       programId?: string;
+      gender?: Gender;
     } = {};
 
     if (idNumber) studentUpdateData.idNumber = Number(idNumber);
     if (fullName) studentUpdateData.fullName = fullName;
     if (programId) studentUpdateData.programId = programId;
+    if (gender) studentUpdateData.gender = gender;
 
     // Update the student
     const updatedStudent = await prisma.student.update({
@@ -194,6 +197,7 @@ export async function PATCH(
         idNumber?: number;
         fullName?: string;
         password?: string;
+        gender?: Gender;
       } = {};
 
       if (idNumber) userUpdateData.idNumber = Number(idNumber);

@@ -67,23 +67,24 @@ model Student {
   id        String   @id @default(uuid())
   idNumber  Int      @unique
   fullName  String
-  programId  String
-  program    Program   @relation(fields: [programId], references: [id])
+  gender    Gender   @default(MALE)
+  programId String
+  program   Program  @relation(fields: [programId], references: [id])
   createdAt DateTime @default(now())
   User      User?
 }
 
 model User {
-  id                                String     @id @default(uuid())
-  idNumber                          Int        @unique
+  id                                String       @id @default(uuid())
+  idNumber                          Int          @unique
   fullName                          String
   password                          String
-  role                              Role       @default(STUDENT)
-  studentId                         String?    @unique
-  createdAt                         DateTime   @default(now())
-  Response_Response_studentIdToUser Response[] @relation("Response_student")
+  role                              Role         @default(STUDENT)
+  studentId                         String?      @unique
+  createdAt                         DateTime     @default(now())
+  Response_Response_studentIdToUser Response[]   @relation("Response_student")
   Suggestion_student                Suggestion[] @relation("Suggestion_student")
-  Student                           Student?   @relation(fields: [studentId], references: [id])
+  Student                           Student?     @relation(fields: [studentId], references: [id])
 }
 
 model Teacher {
@@ -149,4 +150,9 @@ enum QuestionType {
 enum Role {
   STUDENT
   ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
 }

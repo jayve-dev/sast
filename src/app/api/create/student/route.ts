@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { idNumber, fullName, programId } = body;
+    const { idNumber, fullName, gender, programId } = body;
     console.log("DATABASE_URL", process.env.DATABASE_URL);
     const isIdNumberExisting = await prisma.student.findUnique({
       where: {
@@ -25,6 +25,7 @@ export async function POST(request: Request) {
         idNumber: Number(idNumber),
         fullName,
         programId,
+        gender,
       },
     });
 

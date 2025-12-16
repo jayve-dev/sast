@@ -29,6 +29,7 @@ const StudentAdd = ({ onSuccess }: StudentAddProps) => {
     defaultValues: {
       idNumber: "",
       fullName: "",
+      gender: undefined,
       programId: "",
     },
   });
@@ -104,6 +105,28 @@ const StudentAdd = ({ onSuccess }: StudentAddProps) => {
                 </FormItem>
               )}
             />
+            
+            <FormField
+              control={form.control}
+              name='gender'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gender</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      className='w-full p-2 border rounded'
+                      defaultValue=''
+                    >
+                      <option value="MALE">Male</option>
+                      <option value="FEMALE">Female</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name='programId'

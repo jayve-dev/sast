@@ -36,7 +36,7 @@ export const CreateStudentSchema = z.object({
   fullName: z.string().min(1, {
     message: "Please enter your Full name",
   }),
-
+  gender:z.enum(["MALE", "FEMALE"]),
   programId: z.string().uuid("Please select a valid Program"),
 })
 

@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const idNumberInt = parseInt(idNumber, 10);
+    const idNumberInt = parseInt(idNumber, 10); 
 
     // Check if ID number exists in Student table
     const isIdNumberExisting = await prisma.student.findUnique({
