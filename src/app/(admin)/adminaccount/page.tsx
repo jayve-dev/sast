@@ -183,7 +183,7 @@ export default function AdminPage() {
             <div className='flex gap-4'>
               <Input
                 placeholder='Enter account name'
-                className='bg-white min-w-[400px] mx-auto'
+                className='bg-white min-w-100 mx-auto'
               />
             </div>
             <AdminAdd />

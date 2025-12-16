@@ -52,9 +52,12 @@ import {
   GraduationCap,
   Building2,
   BookMarked,
+  FileText,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { generateInstructorReport } from "@/lib/generateInstructorReport";
 
 interface Question {
   questionText: string;
@@ -125,6 +128,7 @@ export default function InstructorEvaluationsPage() {
   const [selectedInstructor, setSelectedInstructor] =
     useState<InstructorSummary | null>(null);
   const [openCategories, setOpenCategories] = useState<Set<string>>(new Set());
+  const [generatingReport, setGeneratingReport] = useState(false);
 
   useEffect(() => {
     fetchInstructorEvaluations();
@@ -160,7 +164,6 @@ export default function InstructorEvaluationsPage() {
         instructor.facultyId.toString().includes(searchTerm)
     );
 
-    // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "name":
@@ -175,6 +178,19 @@ export default function InstructorEvaluationsPage() {
     });
 
     setFilteredInstructors(filtered);
+  };
+
+  const handleGenerateReport = (instructor: InstructorSummary) => {
+    try {
+      setGeneratingReport(true);
+      generateInstructorReport(instructor);
+      toast.success(`Report generated for ${instructor.fullName}`);
+    } catch (error) {
+      console.error("Error generating report:", error);
+      toast.error("Failed to generate report");
+    } finally {
+      setGeneratingReport(false);
+    }
   };
 
   const getRatingColor = (rating: number) => {
@@ -337,7 +353,8 @@ export default function InstructorEvaluationsPage() {
         <CardHeader>
           <CardTitle>Instructors Overview</CardTitle>
           <CardDescription>
-            Click on an instructor to view detailed evaluation results
+            Click on an instructor to view detailed evaluation results or
+            generate a report
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -409,14 +426,25 @@ export default function InstructorEvaluationsPage() {
                         </div>
                       </TableCell>
                       <TableCell className='text-right'>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          onClick={() => setSelectedInstructor(instructor)}
-                        >
-                          <Eye className='w-4 h-4 mr-2' />
-                          View Details
-                        </Button>
+                        <div className='flex items-center justify-end gap-2'>
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={() => handleGenerateReport(instructor)}
+                            disabled={generatingReport}
+                          >
+                            <FileText className='w-4 h-4 mr-2' />
+                            Report
+                          </Button>
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            onClick={() => setSelectedInstructor(instructor)}
+                          >
+                            <Eye className='w-4 h-4 mr-2' />
+                            View
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -434,19 +462,34 @@ export default function InstructorEvaluationsPage() {
       >
         <DialogContent className='max-w-6xl max-h-[90vh] overflow-y-auto'>
           <DialogHeader>
-            <DialogTitle className='text-2xl'>
-              {selectedInstructor?.fullName}
-            </DialogTitle>
-            <DialogDescription>
-              Faculty ID: {selectedInstructor?.facultyId} | Overall Rating:{" "}
-              <span
-                className={`font-bold ${getRatingColor(
-                  selectedInstructor?.overallAverage || 0
-                )}`}
+            <div className='flex items-start justify-between'>
+              <div>
+                <DialogTitle className='text-2xl'>
+                  {selectedInstructor?.fullName}
+                </DialogTitle>
+                <DialogDescription>
+                  Faculty ID: {selectedInstructor?.facultyId} | Overall Rating:{" "}
+                  <span
+                    className={`font-bold ${getRatingColor(
+                      selectedInstructor?.overallAverage || 0
+                    )}`}
+                  >
+                    {selectedInstructor?.overallAverage.toFixed(2)}
+                  </span>
+                </DialogDescription>
+              </div>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() =>
+                  selectedInstructor && handleGenerateReport(selectedInstructor)
+                }
+                disabled={generatingReport}
               >
-                {selectedInstructor?.overallAverage.toFixed(2)}
-              </span>
-            </DialogDescription>
+                <Download className='w-4 h-4 mr-2' />
+                Generate Report
+              </Button>
+            </div>
           </DialogHeader>
 
           {selectedInstructor && (

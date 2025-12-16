@@ -37,12 +37,12 @@ const SideBar = () => {
       <div
         className={`relative w-auto h-full ${
           isOpen
-            ? "bg-[#f79b72] max-h-[500px] px-9 p-5 rounded-lg shadow-lg shadow-[#0A0A0A]/50 transition-all duration-400"
-            : "bg-transparent transition-all duration-400 max-h-[500px]"
+            ? "bg-[#f79b72] max-h-125 px-9 p-5 rounded-lg shadow-lg shadow-[#0A0A0A]/50 transition-all duration-400"
+            : "bg-transparent transition-all duration-400 max-h-125"
         }`}
       >
         <button
-          className='absolute border-8 border-[#2A4759] rounded-full p-3 h-16 w-16 flex items-center justify-center bg-[#f79b72] z-10 -left-9 bottom-[225px] hover:scale-105 transition-transform duration-200 '
+          className='absolute border-8 border-[#2A4759] rounded-full p-3 h-16 w-16 flex items-center justify-center bg-[#f79b72] z-10 -left-9 bottom-56.25 hover:scale-105 transition-transform duration-200 '
           onClick={() => setIsOpen(!isOpen)}
         >
           {isOpen ? (

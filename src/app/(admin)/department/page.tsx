@@ -511,7 +511,7 @@ export default function DepartmentDashboard() {
                   <div></div>
                   <div className='text-right'>Actions</div>
                 </div>
-                
+                 
                 {/* Table Body */}
                 <div className='divide-y divide-border'>
                   {courses.length === 0 ? (
