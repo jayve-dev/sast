@@ -50,6 +50,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Gender } from "@/generated/prisma/wasm";
 
 interface Program {
   id: string;
@@ -59,6 +60,7 @@ interface Student {
   id: string;
   idNumber: number;
   fullName: string;
+  gender: string;
   program: Program;
   programId: string;
 }
@@ -69,21 +71,22 @@ export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
+  const [genderOptions] = useState<string[]>(["MALE", "FEMALE"]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProgram, setSelectedProgram] = useState<string>("all");
-
+  const [selectedGender, setSelectedGender] = useState<string>("all");
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-
   const [editStudent, setEditStudent] = useState<Student | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({
     idNumber: "",
     fullName: "",
+    gender: "",
     programId: "",
     password: "",
   });
@@ -97,7 +100,7 @@ export default function StudentsPage() {
   useEffect(() => {
     applyFilters();
     setCurrentPage(1); // Reset to first page when filters change
-  }, [searchTerm, selectedProgram, students]);
+  }, [searchTerm, selectedProgram, students, selectedGender]);
 
   const fetchStudents = async () => {
     try {
@@ -140,15 +143,23 @@ export default function StudentsPage() {
       );
     }
 
+    // Gender filter
+    if (selectedGender && selectedGender !== "all") {
+      filtered = filtered.filter(
+        (student) => student.gender === selectedGender
+      );
+    }
+
     setFilteredStudents(filtered);
   };
 
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedProgram("all");
+    setSelectedGender("all");
   };
 
-  const hasActiveFilters = searchTerm !== "" || selectedProgram !== "all";
+  const hasActiveFilters = searchTerm !== "" || selectedProgram !== "all" || selectedGender !== "all";
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
@@ -204,6 +215,7 @@ export default function StudentsPage() {
       idNumber: student.idNumber.toString(),
       fullName: student.fullName,
       programId: student.programId,
+      gender: student.gender,
       password: "",
     });
   };
@@ -217,11 +229,13 @@ export default function StudentsPage() {
       const payload: {
         idNumber: number;
         fullName: string;
+        gender: string;
         programId: string;
         password?: string;
       } = {
         idNumber: Number(editFormData.idNumber),
         fullName: editFormData.fullName,
+        gender: editFormData.gender as Gender,
         programId: editFormData.programId,
       };
 
@@ -252,6 +266,7 @@ export default function StudentsPage() {
                 ...student,
                 idNumber: payload.idNumber,
                 fullName: payload.fullName,
+                gender: payload.gender,
                 programId: payload.programId,
                 program: updatedProgram || student.program,
               }
@@ -273,7 +288,6 @@ export default function StudentsPage() {
   return (
     <div className='min-h-screen w-full bg-background p-2 text-black'>
       <StudentHeader />
-
       {/* Search and Filter Section */}
       <div className='mb-6 space-y-4'>
         {/* Search and Filter Controls */}
@@ -315,6 +329,26 @@ export default function StudentsPage() {
                       {program.name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Gender Filter */}
+            <div className='flex-1 space-y-2'>
+              <Label htmlFor='gender-filter' className='text-sm font-medium'>
+                Filter by Gender
+              </Label>
+              <Select
+                value={selectedGender}
+                onValueChange={setSelectedGender}
+              >
+                <SelectTrigger id='gender-filter'>
+                  <SelectValue placeholder='All Genders' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='all'>All Genders</SelectItem>
+                  <SelectItem value='MALE'>Male</SelectItem>
+                  <SelectItem value='FEMALE'>Female</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -367,6 +401,20 @@ export default function StudentsPage() {
                   </button>
                 </div>
               )}
+              {selectedGender !== "all" && (
+                <div className='inline-flex items-center gap-1 px-2 py-1 bg-secondary rounded-md text-sm'>
+                  <span className='text-muted-foreground'>Gender:</span>
+                  <span className='font-medium'>
+                    {genderOptions.find((g) => g === selectedGender)? selectedGender : ""}
+                  </span>
+                  <button
+                    onClick={() => setSelectedGender("all")}
+                    className='ml-1 hover:bg-secondary-foreground/10 rounded-full p-0.5'
+                  >
+                    <X className='w-3 h-3' />
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -374,9 +422,10 @@ export default function StudentsPage() {
 
       {/* Students Table */}
       <div className='rounded-xl border border-border bg-card overflow-hidden shadow-sm'>
-        <div className='grid grid-cols-4 gap-4 px-6 py-4 bg-secondary/50 border-b border-border font-semibold text-sm text-foreground'>
+        <div className='grid grid-cols-5 gap-4 px-6 py-4 bg-secondary/50 border-b border-border font-semibold text-sm text-foreground'>
           <div>ID Number</div>
           <div>Full Name</div>
+          <div>Gender</div>
           <div>Program</div>
           <div className='text-right'>Actions</div>
         </div>
@@ -406,7 +455,7 @@ export default function StudentsPage() {
             currentStudents.map((student, index) => (
               <div
                 key={student.id}
-                className='grid grid-cols-4 gap-4 px-6 py-4 items-center hover:bg-secondary/30 transition-colors'
+                className='grid grid-cols-5 gap-4 px-6 py-4 items-center hover:bg-secondary/30 transition-colors'
               >
                 <div className='flex items-center gap-3'>
                   <span className='text-xs text-muted-foreground w-6'>
@@ -417,6 +466,9 @@ export default function StudentsPage() {
                   </span>
                 </div>
                 <div className='text-foreground'>{student.fullName}</div>
+                <div className='text-sm text-muted-foreground'>
+                  {student.gender}
+                </div>
                 <div className='text-sm text-muted-foreground'>
                   {student.program.name}
                 </div>
@@ -591,25 +643,44 @@ export default function StudentsPage() {
                 />
               </div>
 
-              <div className='space-y-2'>
-                <Label htmlFor='edit-program'>Program</Label>
-                <Select
-                  value={editFormData.programId}
-                  onValueChange={(value) =>
-                    setEditFormData({ ...editFormData, programId: value })
-                  }
-                >
-                  <SelectTrigger id='edit-program'>
-                    <SelectValue placeholder='Select program' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {programs.map((program) => (
-                      <SelectItem key={program.id} value={program.id}>
-                        {program.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className='flex flex-row gap-4'>
+                <div className='space-y-2 w-full'>
+                  <Label htmlFor='edit-gender'>Gender</Label>
+                  <Select
+                    value={editFormData.gender}
+                    onValueChange={(value) =>
+                      setEditFormData({ ...editFormData, gender: value })
+                    }
+                  >
+                    <SelectTrigger id='edit-gender' className="w-full">
+                      <SelectValue placeholder='Select gender' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='MALE'>Male</SelectItem>
+                      <SelectItem value='FEMALE'>Female</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className='space-y-2 w-full'>
+                  <Label htmlFor='edit-program'>Program</Label>
+                  <Select
+                    value={editFormData.programId}
+                    onValueChange={(value) =>
+                      setEditFormData({ ...editFormData, programId: value })
+                    }
+                  >
+                    <SelectTrigger id='edit-program' className="w-full">
+                      <SelectValue placeholder='Select program' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {programs.map((program) => (
+                        <SelectItem key={program.id} value={program.id}>
+                          {program.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
             <DialogFooter>
