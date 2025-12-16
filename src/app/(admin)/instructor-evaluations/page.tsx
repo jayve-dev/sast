@@ -34,6 +34,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -57,6 +67,8 @@ import {
   Download,
   Filter,
   X,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -132,6 +144,7 @@ export default function InstructorEvaluationsPage() {
   >([]);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProgram, setSelectedProgram] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"name" | "rating" | "responses">("name");
@@ -139,15 +152,33 @@ export default function InstructorEvaluationsPage() {
     useState<InstructorSummary | null>(null);
   const [openCategories, setOpenCategories] = useState<Set<string>>(new Set());
   const [generatingReport, setGeneratingReport] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
+  const [instructorToDelete, setInstructorToDelete] =
+    useState<InstructorSummary | null>(null);
+  const [surveyActive, setSurveyActive] = useState(false);
 
   useEffect(() => {
     fetchInstructorEvaluations();
     fetchPrograms();
+    checkSurveyStatus();
   }, []);
 
   useEffect(() => {
     filterAndSortInstructors();
   }, [instructors, searchTerm, selectedProgram, sortBy]);
+
+  const checkSurveyStatus = async () => {
+    try {
+      const response = await fetch("/api/admin/survey-status");
+      if (response.ok) {
+        const data = await response.json();
+        setSurveyActive(data.isActive);
+      }
+    } catch (error) {
+      console.error("Error checking survey status:", error);
+    }
+  };
 
   const fetchPrograms = async () => {
     try {
@@ -217,6 +248,69 @@ export default function InstructorEvaluationsPage() {
 
   const hasActiveFilters = searchTerm !== "" || selectedProgram !== "all";
 
+  const handleDeleteIndividual = async () => {
+    if (!instructorToDelete) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch("/api/admin/instructor-evaluations", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          teacherId: instructorToDelete.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete instructor evaluations");
+      }
+
+      const data = await response.json();
+      toast.success(`Deleted ${data.deleted} evaluation records for ${instructorToDelete.fullName}`);
+      fetchInstructorEvaluations();
+      setDeleteDialogOpen(false);
+      setInstructorToDelete(null);
+    } catch (error) {
+      console.error("Error deleting instructor evaluations:", error);
+      toast.error("Failed to delete instructor evaluations");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (surveyActive) {
+      toast.error("Cannot delete evaluations while survey is active");
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const response = await fetch("/api/admin/instructor-evaluations?deleteAll=true", {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to delete all evaluations");
+      }
+
+      toast.success(`Successfully deleted all evaluations (${data.deleted} records)`);
+      fetchInstructorEvaluations();
+      setDeleteAllDialogOpen(false);
+    } catch (error) {
+      console.error("Error deleting all evaluations:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete all evaluations"
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleGenerateReport = (instructor: InstructorSummary) => {
     try {
       setGeneratingReport(true);
@@ -277,12 +371,37 @@ export default function InstructorEvaluationsPage() {
   return (
     <div className='container mx-auto p-6 space-y-6'>
       {/* Header */}
-      <div>
-        <h1 className='text-3xl font-bold'>Instructor Evaluations</h1>
-        <p className='text-muted-foreground mt-2'>
-          Summary of all instructor evaluations and ratings
-        </p>
+      <div className='flex items-center justify-between'>
+        <div>
+          <h1 className='text-3xl font-bold'>Instructor Evaluations</h1>
+          <p className='text-muted-foreground mt-2'>
+            Summary of all instructor evaluations and ratings
+          </p>
+        </div>
+        <Button
+          onClick={() => setDeleteAllDialogOpen(true)}
+          variant='destructive'
+          className='gap-2'
+          disabled={instructors.length === 0 || surveyActive}
+        >
+          <Trash2 className='w-4 h-4' />
+          Delete All
+        </Button>
       </div>
+
+      {/* Survey Status Warning */}
+      {surveyActive && (
+        <Card className='border-yellow-500 bg-yellow-50 dark:bg-yellow-950'>
+          <CardContent className='pt-6'>
+            <div className='flex items-center gap-2 text-yellow-800 dark:text-yellow-200'>
+              <AlertTriangle className='w-5 h-5' />
+              <p className='font-medium'>
+                Survey is currently active. Delete All is disabled to protect ongoing data collection.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Summary Cards */}
       <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
@@ -583,6 +702,16 @@ export default function InstructorEvaluationsPage() {
                           >
                             <Eye className='w-4 h-4 mr-2' />
                             View
+                          </Button>
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            onClick={() => {
+                              setInstructorToDelete(instructor);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className='w-4 h-4 text-destructive' />
                           </Button>
                         </div>
                       </TableCell>
@@ -951,6 +1080,105 @@ export default function InstructorEvaluationsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Individual Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Instructor Evaluations</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete all evaluation data for{" "}
+              <strong>{instructorToDelete?.fullName}</strong> (Faculty ID:{" "}
+              {instructorToDelete?.facultyId})? This will permanently delete{" "}
+              <strong>{instructorToDelete?.totalResponses}</strong> evaluation
+              records. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteIndividual}
+              disabled={deleting}
+              className='bg-destructive hover:bg-destructive/90'
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete All Dialog */}
+      <AlertDialog
+        open={deleteAllDialogOpen}
+        onOpenChange={setDeleteAllDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className='flex items-center gap-2'>
+              <AlertTriangle className='w-5 h-5 text-destructive' />
+              Delete All Instructor Evaluations
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {surveyActive ? (
+                <div className='space-y-2'>
+                  <p className='font-semibold text-destructive'>
+                    Cannot delete evaluations while survey is active!
+                  </p>
+                  <p>
+                    Please deactivate the survey first before deleting all
+                    evaluations.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p className='font-semibold mb-2'>
+                    This will permanently delete ALL evaluation data for ALL{" "}
+                    {instructors.length} instructors!
+                  </p>
+                  <p>
+                    Total records to be deleted:{" "}
+                    <strong>
+                      {instructors.reduce(
+                        (sum, i) => sum + i.totalResponses,
+                        0
+                      )}
+                    </strong>{" "}
+                    evaluations
+                  </p>
+                  <p className='mt-2'>
+                    This action cannot be undone. All instructor evaluation data
+                    will be permanently lost.
+                  </p>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAll}
+              disabled={deleting || surveyActive}
+              className='bg-destructive hover:bg-destructive/90'
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+                  Deleting...
+                </>
+              ) : (
+                "Delete All"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
