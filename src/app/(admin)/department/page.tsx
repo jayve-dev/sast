@@ -24,6 +24,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -41,7 +48,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { BookOpen, Plus, MoreHorizontal, Trash2, Edit } from "lucide-react";
+import { BookOpen, Plus, MoreHorizontal, Trash2, Edit, X, Filter } from "lucide-react";
 import { toast } from "sonner";
 import type React from "react";
 
@@ -70,6 +77,14 @@ export default function DepartmentDashboard() {
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Filter states
+  const [selectedProgramForSections, setSelectedProgramForSections] = useState<string>("all");
+  const [selectedSectionForCourses, setSelectedSectionForCourses] = useState<string>("all");
+
+  // Filtered data
+  const [filteredSections, setFilteredSections] = useState<Section[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<
     "program" | "course" | "section" | null
@@ -88,6 +103,16 @@ export default function DepartmentDashboard() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Apply section filter whenever program filter or sections change
+  useEffect(() => {
+    applySectionFilter();
+  }, [selectedProgramForSections, sections]);
+
+  // Apply course filter whenever section filter or courses change
+  useEffect(() => {
+    applyCourseFilter();
+  }, [selectedSectionForCourses, courses]);
 
   const fetchData = async () => {
     try {
@@ -108,6 +133,34 @@ export default function DepartmentDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const applySectionFilter = () => {
+    if (selectedProgramForSections === "all") {
+      setFilteredSections(sections);
+    } else {
+      setFilteredSections(
+        sections.filter((section) => section.programId === selectedProgramForSections)
+      );
+    }
+  };
+
+  const applyCourseFilter = () => {
+    if (selectedSectionForCourses === "all") {
+      setFilteredCourses(courses);
+    } else {
+      setFilteredCourses(
+        courses.filter((course) => course.sectionId === selectedSectionForCourses)
+      );
+    }
+  };
+
+  const clearSectionFilter = () => {
+    setSelectedProgramForSections("all");
+  };
+
+  const clearCourseFilter = () => {
+    setSelectedSectionForCourses("all");
   };
 
   const handleDelete = async () => {
@@ -276,31 +329,6 @@ export default function DepartmentDashboard() {
             </CardContent>
           </Card>
 
-          {/* Courses Card */}
-          <Card className='border border-border hover:shadow-lg transition-shadow'>
-            <CardHeader className='pb-4'>
-              <div className='flex justify-between items-start'>
-                <div>
-                  <CardTitle className='text-lg'>Courses</CardTitle>
-                  <CardDescription>Course offerings</CardDescription>
-                </div>
-                <div className='bg-chart-1/10 p-3 rounded-lg'>
-                  <BookOpen className='w-5 h-5 text-chart-1' />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className='space-y-2'>
-                <p className='text-4xl font-bold text-foreground'>
-                  {loading ? "-" : courses.length}
-                </p>
-                <p className='text-sm text-muted-foreground'>
-                  Total courses available
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Sections Card */}
           <Card className='border border-border hover:shadow-lg transition-shadow'>
             <CardHeader className='pb-4'>
@@ -325,8 +353,33 @@ export default function DepartmentDashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
 
+          {/* Courses Card */}
+          <Card className='border border-border hover:shadow-lg transition-shadow'>
+            <CardHeader className='pb-4'>
+              <div className='flex justify-between items-start'>
+                <div>
+                  <CardTitle className='text-lg'>Courses</CardTitle>
+                  <CardDescription>Course offerings</CardDescription>
+                </div>
+                <div className='bg-chart-1/10 p-3 rounded-lg'>
+                  <BookOpen className='w-5 h-5 text-chart-1' />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className='space-y-2'>
+                <p className='text-4xl font-bold text-foreground'>
+                  {loading ? "-" : courses.length}
+                </p>
+                <p className='text-sm text-muted-foreground'>
+                  Total courses available
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+   
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
           {/* Programs Table */}
           <Card className='border border-border'>
@@ -424,7 +477,53 @@ export default function DepartmentDashboard() {
               </AddModal>
             </CardHeader>
             <CardContent className='p-0'>
-              <div className='rounded-lg border border-border overflow-hidden'>
+              {/* Filter for Sections */}
+              <div className='px-6 py-3 bg-secondary/30 border-b border-border'>
+                <div className='space-y-2'>
+                  <Label htmlFor='section-program-filter' className='text-xs font-medium'>
+                    Filter by Program
+                  </Label>
+                  <Select
+                    value={selectedProgramForSections}
+                    onValueChange={setSelectedProgramForSections}
+                  >
+                    <SelectTrigger id='section-program-filter' className='h-9'>
+                      <SelectValue placeholder='All Programs' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>All Programs</SelectItem>
+                      {programs.map((program) => (
+                        <SelectItem key={program.id} value={program.id}>
+                          {program.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Active Filter Display */}
+                  {selectedProgramForSections !== "all" && (
+                    <div className='flex items-center gap-2 pt-1'>
+                      <span className='text-xs text-muted-foreground flex items-center gap-1'>
+                        <Filter className='w-3 h-3' />
+                        Filtered:
+                      </span>
+                      <div className='inline-flex items-center gap-1 px-2 py-0.5 bg-secondary rounded-md text-xs'>
+                        <span className='font-medium'>
+                          {programs.find((p) => p.id === selectedProgramForSections)?.name}
+                        </span>
+                        <button
+                          onClick={clearSectionFilter}
+                          className='ml-1 hover:bg-secondary-foreground/10 rounded-full p-0.5'
+                        >
+                          <X className='w-3 h-3' />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className='rounded-lg border-t border-border overflow-hidden'>
                 {/* Table Header */}
                 <div className='grid grid-cols-3 gap-4 px-6 py-4 bg-secondary/50 border-b border-border font-semibold text-sm text-foreground'>
                   <div>Name</div>
@@ -434,12 +533,14 @@ export default function DepartmentDashboard() {
 
                 {/* Table Body */}
                 <div className='divide-y divide-border'>
-                  {sections.length === 0 ? (
+                  {filteredSections.length === 0 ? (
                     <div className='px-6 py-8 text-center text-muted-foreground text-sm'>
-                      No sections found
+                      {selectedProgramForSections !== "all" 
+                        ? "No sections found for this program" 
+                        : "No sections found"}
                     </div>
                   ) : (
-                    sections.map((section) => (
+                    filteredSections.map((section) => (
                       <div
                         key={section.id}
                         className='grid grid-cols-3 gap-4 px-6 py-4 items-center hover:bg-secondary/30 transition-colors'
@@ -504,7 +605,53 @@ export default function DepartmentDashboard() {
               </AddModal>
             </CardHeader>
             <CardContent className='p-0'>
-              <div className='rounded-lg border border-border overflow-hidden'>
+              {/* Filter for Courses */}
+              <div className='px-6 py-3 bg-secondary/30 border-b border-border'>
+                <div className='space-y-2'>
+                  <Label htmlFor='course-section-filter' className='text-xs font-medium'>
+                    Filter by Section
+                  </Label>
+                  <Select
+                    value={selectedSectionForCourses}
+                    onValueChange={setSelectedSectionForCourses}
+                  >
+                    <SelectTrigger id='course-section-filter' className='h-9'>
+                      <SelectValue placeholder='All Sections' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>All Sections</SelectItem>
+                      {sections.map((section) => (
+                        <SelectItem key={section.id} value={section.id}>
+                          {section.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Active Filter Display */}
+                  {selectedSectionForCourses !== "all" && (
+                    <div className='flex items-center gap-2 pt-1'>
+                      <span className='text-xs text-muted-foreground flex items-center gap-1'>
+                        <Filter className='w-3 h-3' />
+                        Filtered:
+                      </span>
+                      <div className='inline-flex items-center gap-1 px-2 py-0.5 bg-secondary rounded-md text-xs'>
+                        <span className='font-medium'>
+                          {sections.find((s) => s.id === selectedSectionForCourses)?.name}
+                        </span>
+                        <button
+                          onClick={clearCourseFilter}
+                          className='ml-1 hover:bg-secondary-foreground/10 rounded-full p-0.5'
+                        >
+                          <X className='w-3 h-3' />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className='rounded-lg border-t border-border overflow-hidden'>
                 {/* Table Header */}
                 <div className='grid grid-cols-3 gap-4 px-6 py-4 bg-secondary/50 border-b border-border font-semibold text-sm text-foreground'>
                   <div>Code</div>
@@ -514,12 +661,14 @@ export default function DepartmentDashboard() {
                  
                 {/* Table Body */}
                 <div className='divide-y divide-border'>
-                  {courses.length === 0 ? (
+                  {filteredCourses.length === 0 ? (
                     <div className='px-6 py-8 text-center text-muted-foreground text-sm'>
-                      No courses found
+                      {selectedSectionForCourses !== "all" 
+                        ? "No courses found for this section" 
+                        : "No courses found"}
                     </div>
                   ) : (
-                    courses.map((course) => (
+                    filteredCourses.map((course) => (
                       <div
                         key={course.id}
                         className='grid grid-cols-3 gap-4 px-6 py-4 items-center hover:bg-secondary/30 transition-colors'
@@ -582,47 +731,45 @@ export default function DepartmentDashboard() {
             </DialogTitle>
             <DialogDescription>Update the information below.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleEditSubmit}>
-            <div className='space-y-4 py-4'>
-              {editType === "course" && (
-                <div className='space-y-2'>
-                  <Label htmlFor='code'>Code</Label>
-                  <Input
-                    id='code'
-                    value={editFormData.code}
-                    onChange={(e) =>
-                      setEditFormData({ ...editFormData, code: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-              )}
+          <div className='space-y-4 py-4'>
+            {editType === "course" && (
               <div className='space-y-2'>
-                <Label htmlFor='name'>Name</Label>
+                <Label htmlFor='code'>Code</Label>
                 <Input
-                  id='name'
-                  value={editFormData.name}
+                  id='code'
+                  value={editFormData.code}
                   onChange={(e) =>
-                    setEditFormData({ ...editFormData, name: e.target.value })
+                    setEditFormData({ ...editFormData, code: e.target.value })
                   }
                   required
                 />
               </div>
+            )}
+            <div className='space-y-2'>
+              <Label htmlFor='name'>Name</Label>
+              <Input
+                id='name'
+                value={editFormData.name}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, name: e.target.value })
+                }
+                required
+              />
             </div>
-            <DialogFooter>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => setEditItem(null)}
-                disabled={isEditing}
-              >
-                Cancel
-              </Button>
-              <Button type='submit' disabled={isEditing}>
-                {isEditing ? "Updating..." : "Update"}
-              </Button>
-            </DialogFooter>
-          </form>
+          </div>
+          <DialogFooter>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => setEditItem(null)}
+              disabled={isEditing}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleEditSubmit} disabled={isEditing}>
+              {isEditing ? "Updating..." : "Update"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
