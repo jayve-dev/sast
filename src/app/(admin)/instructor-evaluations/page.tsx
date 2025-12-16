@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -54,6 +55,8 @@ import {
   BookMarked,
   FileText,
   Download,
+  Filter,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -117,13 +120,20 @@ interface InstructorSummary {
   courseAverages: CourseAverage[];
 }
 
+interface Program {
+  id: string;
+  name: string;
+}
+
 export default function InstructorEvaluationsPage() {
   const [instructors, setInstructors] = useState<InstructorSummary[]>([]);
   const [filteredInstructors, setFilteredInstructors] = useState<
     InstructorSummary[]
   >([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProgram, setSelectedProgram] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"name" | "rating" | "responses">("name");
   const [selectedInstructor, setSelectedInstructor] =
     useState<InstructorSummary | null>(null);
@@ -132,11 +142,22 @@ export default function InstructorEvaluationsPage() {
 
   useEffect(() => {
     fetchInstructorEvaluations();
+    fetchPrograms();
   }, []);
 
   useEffect(() => {
     filterAndSortInstructors();
-  }, [instructors, searchTerm, sortBy]);
+  }, [instructors, searchTerm, selectedProgram, sortBy]);
+
+  const fetchPrograms = async () => {
+    try {
+      const response = await fetch("/api/create/department/program");
+      const data = await response.json();
+      setPrograms(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Failed to fetch programs:", error);
+    }
+  };
 
   const fetchInstructorEvaluations = async () => {
     try {
@@ -164,6 +185,15 @@ export default function InstructorEvaluationsPage() {
         instructor.facultyId.toString().includes(searchTerm)
     );
 
+    // Apply program filter
+    if (selectedProgram && selectedProgram !== "all") {
+      filtered = filtered.filter((instructor) =>
+        instructor.programAverages.some(
+          (program) => program.programId === selectedProgram
+        )
+      );
+    }
+
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "name":
@@ -179,6 +209,13 @@ export default function InstructorEvaluationsPage() {
 
     setFilteredInstructors(filtered);
   };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedProgram("all");
+  };
+
+  const hasActiveFilters = searchTerm !== "" || selectedProgram !== "all";
 
   const handleGenerateReport = (instructor: InstructorSummary) => {
     try {
@@ -321,29 +358,109 @@ export default function InstructorEvaluationsPage() {
           <CardTitle>Filter & Sort</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className='flex flex-col md:flex-row gap-4'>
-            <div className='flex-1 relative'>
-              <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-              <Input
-                placeholder='Search by name or faculty ID...'
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className='pl-10'
-              />
+          <div className='space-y-4'>
+            <div className='flex flex-col md:flex-row gap-4'>
+              <div className='flex-1 space-y-2'>
+                <Label htmlFor='search' className='text-sm font-medium'>
+                  Search Instructors
+                </Label>
+                <div className='relative'>
+                  <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+                  <Input
+                    id='search'
+                    placeholder='Search by name or faculty ID...'
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className='pl-10'
+                  />
+                </div>
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='program-filter' className='text-sm font-medium'>
+                  Filter by Program
+                </Label>
+                <Select
+                  value={selectedProgram}
+                  onValueChange={setSelectedProgram}
+                >
+                  <SelectTrigger id='program-filter'>
+                    <SelectValue placeholder='All Programs' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='all'>All Programs</SelectItem>
+                    {programs.map((program) => (
+                      <SelectItem key={program.id} value={program.id}>
+                        {program.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='sort-by' className='text-sm font-medium'>
+                  Sort By
+                </Label>
+                <Select
+                  value={sortBy}
+                  onValueChange={(value: any) => setSortBy(value)}
+                >
+                  <SelectTrigger id='sort-by'>
+                    <SelectValue placeholder='Sort by' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='name'>Name (A-Z)</SelectItem>
+                    <SelectItem value='rating'>Highest Rating</SelectItem>
+                    <SelectItem value='responses'>Most Evaluations</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <Select
-              value={sortBy}
-              onValueChange={(value: any) => setSortBy(value)}
-            >
-              <SelectTrigger className='w-full md:w-48'>
-                <SelectValue placeholder='Sort by' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='name'>Name (A-Z)</SelectItem>
-                <SelectItem value='rating'>Highest Rating</SelectItem>
-                <SelectItem value='responses'>Most Evaluations</SelectItem>
-              </SelectContent>
-            </Select>
+
+            {/* Active Filters Display */}
+            {hasActiveFilters && (
+              <div className='flex flex-wrap gap-2 items-center pt-2'>
+                <span className='text-sm text-muted-foreground flex items-center gap-1'>
+                  <Filter className='w-4 h-4' />
+                  Active filters:
+                </span>
+                {searchTerm && (
+                  <div className='inline-flex items-center gap-1 px-2 py-1 bg-secondary rounded-md text-sm'>
+                    <span className='text-muted-foreground'>Search:</span>
+                    <span className='font-medium'>{searchTerm}</span>
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className='ml-1 hover:bg-secondary-foreground/10 rounded-full p-0.5'
+                    >
+                      <X className='w-3 h-3' />
+                    </button>
+                  </div>
+                )}
+                {selectedProgram !== "all" && (
+                  <div className='inline-flex items-center gap-1 px-2 py-1 bg-secondary rounded-md text-sm'>
+                    <span className='text-muted-foreground'>Program:</span>
+                    <span className='font-medium'>
+                      {programs.find((p) => p.id === selectedProgram)?.name}
+                    </span>
+                    <button
+                      onClick={() => setSelectedProgram("all")}
+                      className='ml-1 hover:bg-secondary-foreground/10 rounded-full p-0.5'
+                    >
+                      <X className='w-3 h-3' />
+                    </button>
+                  </div>
+                )}
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  onClick={clearFilters}
+                  className='h-7 px-2 text-xs'
+                >
+                  Clear all
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -353,6 +470,12 @@ export default function InstructorEvaluationsPage() {
         <CardHeader>
           <CardTitle>Instructors Overview</CardTitle>
           <CardDescription>
+            {hasActiveFilters && (
+              <span>
+                Showing {filteredInstructors.length} of {instructors.length}{" "}
+                instructors •{" "}
+              </span>
+            )}
             Click on an instructor to view detailed evaluation results or
             generate a report
           </CardDescription>
@@ -375,7 +498,24 @@ export default function InstructorEvaluationsPage() {
                 {filteredInstructors.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className='text-center py-8'>
-                      No instructors found
+                      <div className='space-y-2'>
+                        <p className='text-muted-foreground'>
+                          {hasActiveFilters
+                            ? "No instructors found matching your filters"
+                            : "No instructors found"}
+                        </p>
+                        {hasActiveFilters && (
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={clearFilters}
+                            className='gap-2'
+                          >
+                            <X className='w-4 h-4' />
+                            Clear Filters
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
