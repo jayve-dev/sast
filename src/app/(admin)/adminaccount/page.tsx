@@ -286,6 +286,7 @@ export default function AdminPage() {
                   <Input
                     id='edit-idNumber'
                     type='number'
+                    readOnly
                     value={editFormData.idNumber}
                     onChange={(e) =>
                       setEditFormData({
@@ -308,21 +309,6 @@ export default function AdminPage() {
                       })
                     }
                     required
-                  />
-                </div>
-                <div className='space-y-2'>
-                  <Label htmlFor='edit-password'>New Password (optional)</Label>
-                  <Input
-                    id='edit-password'
-                    type='password'
-                    value={editFormData.password}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        password: e.target.value,
-                      })
-                    }
-                    placeholder='Leave blank to keep current password'
                   />
                 </div>
               </div>
