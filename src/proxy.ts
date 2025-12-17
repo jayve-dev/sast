@@ -18,13 +18,26 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow public create endpoints used by auth callbacks (e.g. /api/create/user)
+  if (pathname.startsWith("/api/create")) {
+    return NextResponse.next();
+  }
+
   // Get session
   const session = await auth();
   const isLoggedIn = !!session?.user;
 
   // Public routes that don't require authentication
-  const publicRoutes = ["/signin", "/auth/signin", "/auth/error"];
-  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
+  const publicRoutes = [
+    "/signin",
+    "/auth/signin",
+    "/auth/error",
+    "/signup",
+    "/auth/signup",
+  ];
+  const isPublicRoute = publicRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
 
   // Root path handling
   if (pathname === "/") {
@@ -44,24 +57,20 @@ export async function proxy(request: NextRequest) {
   // If user is logged in and trying to access public route (like signin)
   if (isLoggedIn && isPublicRoute) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
-  } 
+  }
 
   // Admin-only route protection
   const adminRoutes = ["/(admin)/dashboard"];
   const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
-  
+
   if (isAdminRoute && session?.user?.role !== "ADMIN") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-
   // API route protection
   if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth")) {
     if (!isLoggedIn) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     // Admin API routes
@@ -78,13 +87,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\..*|public).*)",
     "/api/:path*",
   ],
