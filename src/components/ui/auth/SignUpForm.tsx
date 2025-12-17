@@ -164,7 +164,8 @@ const SignUpForm = () => {
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder='Juan Dela Cruz'
+                      placeholder='Jayvee Doe'
+                      type="text"
                       disabled={isLoading}
                     />
                   </FormControl>
