@@ -41,7 +41,7 @@ export async function DELETE(
     if (instructor.responses.length > 0) {
       return NextResponse.json(
         {
-          message: `Cannot delete instructor. They have ${instructor.responses.length} response(s) in the system.`,
+          message: `Cannot delete instructor. They have response(s) in the system.`,
         },
         { status: 400 }
       );
@@ -213,7 +213,7 @@ export async function PATCH(
         if (respCount > 0) {
           return NextResponse.json(
             {
-              message: `Cannot remove assignment (${ea.id}) for courseId:${ea.courseId} sectionId:${ea.sectionId} — it has ${respCount} response(s).`,
+              message: `Cannot remove assignment it has response(s).`,
             },
             { status: 400 }
           );
