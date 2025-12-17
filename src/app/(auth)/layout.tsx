@@ -20,7 +20,11 @@ export default async function AuthLayout({
   const session = await auth();
 
   if (session) {
-    redirect("/dashboard");
+    if(session.user.role === "ADMIN") {
+      redirect("/(admin)/dashboard");
+    } else {
+      redirect("/(student)/assessment");
+    }
   }
 
   return (
@@ -35,7 +39,7 @@ export default async function AuthLayout({
                 Student Assessment Survey for Teachers
               </div>
             </div>
-            <div className='w-full max-w-[420px]'>{children}</div>
+            <div className='w-full max-w-105'>{children}</div>
           </div>
         </SessionProvider>
       </div>
