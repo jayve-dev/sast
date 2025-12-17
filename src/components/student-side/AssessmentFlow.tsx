@@ -55,9 +55,9 @@ export default function AssessmentFlow() {
     checkSurveyStatus();
 
     // Poll every 30 seconds to check if survey status changed
-    const interval = setInterval(checkSurveyStatus, 30000);
+    // const interval = setInterval(checkSurveyStatus, 10000);
 
-    return () => clearInterval(interval);
+    // return () => clearInterval(interval);
   }, []);
 
   // Fetch student's program from their record
@@ -244,7 +244,7 @@ export default function AssessmentFlow() {
   }
 
   return (
-    <div className='h-dvh bg-transparent py-1'>
+    <div className='h-dvh bg-transparent py-1 w-full max-w-225'>
       <div className='space-y-8'>
         {/* Header */}
         <div className='space-y-4'>

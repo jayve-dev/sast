@@ -102,7 +102,7 @@ const InstructorsSelection = () => {
 
   if (instructors.length === 0) {
     return (
-      <div className='flex items-center justify-center p-8'>
+      <div className='flex items-center justify-center p-8 w-full'>
         <p className='text-muted-foreground'>
           No instructors available for this course
         </p>
