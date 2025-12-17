@@ -113,7 +113,7 @@ export async function PATCH(
     const params = await context.params;
     const { id } = params;
     const body = await req.json();
-    const { facultyId, fullName } = body;
+    const { facultyId, fullName, assignments } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -131,6 +131,7 @@ export async function PATCH(
 
     const instructor = await prisma.teacher.findUnique({
       where: { id },
+      include: { assigns: true },
     });
 
     if (!instructor) {
@@ -141,7 +142,7 @@ export async function PATCH(
     }
 
     // Check if facultyId is being changed and if new facultyId already exists
-    if (facultyId !== instructor.facultyId) {
+    if (String(facultyId) !== String(instructor.facultyId)) {
       const existingInstructor = await prisma.teacher.findUnique({
         where: { facultyId: Number(facultyId) },
       });
@@ -154,6 +155,7 @@ export async function PATCH(
       }
     }
 
+    // Update teacher basic info
     const updatedInstructor = await prisma.teacher.update({
       where: { id },
       data: {
@@ -162,10 +164,105 @@ export async function PATCH(
       },
     });
 
+    // If assignments provided, reconcile them
+    if (Array.isArray(assignments)) {
+      // Normalize incoming assignments to string keys for comparison
+      const incomingKeys = assignments.map(
+        (a: any) =>
+          `${String(a.programId)}::${String(a.courseId)}::${String(
+            a.sectionId
+          )}`
+      );
+
+      // Build map of existing assigns with key => id
+      const existingAssigns = instructor.assigns || [];
+      const existingMap = new Map<string, string>();
+      existingAssigns.forEach((ea: any) => {
+        const key = `${String(ea.programId)}::${String(ea.courseId)}::${String(
+          ea.sectionId
+        )}`;
+        existingMap.set(key, ea.id);
+      });
+
+      // Determine creates and deletes
+      const toCreate = assignments.filter(
+        (a: any) =>
+          !existingMap.has(
+            `${String(a.programId)}::${String(a.courseId)}::${String(
+              a.sectionId
+            )}`
+          )
+      );
+
+      const toKeepKeys = new Set(incomingKeys);
+      const toDelete = existingAssigns.filter(
+        (ea: any) =>
+          !toKeepKeys.has(
+            `${String(ea.programId)}::${String(ea.courseId)}::${String(
+              ea.sectionId
+            )}`
+          )
+      );
+
+      // Before deleting assignments, ensure none have responses
+      const deletableIds: string[] = [];
+      for (const ea of toDelete) {
+        const respCount = await prisma.response.count({
+          where: { assignmentId: ea.id },
+        });
+        if (respCount > 0) {
+          return NextResponse.json(
+            {
+              message: `Cannot remove assignment (${ea.id}) for courseId:${ea.courseId} sectionId:${ea.sectionId} — it has ${respCount} response(s).`,
+            },
+            { status: 400 }
+          );
+        }
+        deletableIds.push(ea.id);
+      }
+
+      // Perform deletions
+      if (deletableIds.length > 0) {
+        await prisma.teachersAssigned.deleteMany({
+          where: { id: { in: deletableIds } },
+        });
+      }
+
+      // Perform creations
+      if (toCreate.length > 0) {
+        // prepare create data
+        const createData = toCreate.map((a: any) => ({
+          teacherId: id,
+          programId: a.programId,
+          courseId: a.courseId,
+          sectionId: a.sectionId,
+        }));
+
+        // createMany (skips duplicates at DB level if constraint exists)
+        await prisma.teachersAssigned.createMany({
+          data: createData,
+        });
+      }
+    }
+
+    // Return updated instructor with assignments included
+    const result = await prisma.teacher.findUnique({
+      where: { id },
+      include: {
+        assigns: {
+          include: {
+            Course: true,
+            Program: true,
+            Section: true,
+          },
+        },
+      },
+    });
+
     return NextResponse.json(
       {
         message: "Instructor updated successfully",
-        instructor: updatedInstructor,
+        instructor: result,
       },
       { status: 200 }
     );
