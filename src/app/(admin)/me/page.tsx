@@ -54,7 +54,6 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [accountData, setAccountData] = useState<AccountData | null>(null);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -63,7 +62,6 @@ export default function AccountPage() {
   const [idNumber, setIdNumber] = useState("");
 
   // Password form state
-  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -148,23 +146,18 @@ export default function AccountPage() {
 
   const handleChangePassword = async () => {
     // Validation
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    if (!newPassword || !confirmPassword) {
       toast.error("All password fields are required");
       return;
     }
 
-    if (newPassword.length < 6) {
-      toast.error("New password must be at least 6 characters");
+    if (newPassword.length < 8) {
+      toast.error("New password must be at least 8 characters");
       return;
     }
 
     if (newPassword !== confirmPassword) {
       toast.error("New passwords do not match");
-      return;
-    }
-
-    if (currentPassword === newPassword) {
-      toast.error("New password must be different from current password");
       return;
     }
 
@@ -176,7 +169,6 @@ export default function AccountPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          currentPassword,
           newPassword,
         }),
       });
@@ -187,7 +179,6 @@ export default function AccountPage() {
       }
 
       toast.success("Password changed successfully");
-      setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
@@ -317,20 +308,6 @@ export default function AccountPage() {
                 </p>
               </div>
 
-              <Separator />
-
-              <div className='space-y-2'>
-                <Label className='text-muted-foreground'>Role</Label>
-                <Input
-                  value={accountData?.role || ""}
-                  disabled
-                  className='bg-muted'
-                />
-                <p className='text-xs text-muted-foreground'>
-                  Your role cannot be changed
-                </p>
-              </div>
-
               <div className='flex justify-end gap-3'>
                 <Button
                   variant='outline'
@@ -370,32 +347,6 @@ export default function AccountPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className='space-y-6'>
-              <div className='space-y-2'>
-                <Label htmlFor='currentPassword'>Current Password</Label>
-                <div className='relative'>
-                  <Input
-                    id='currentPassword'
-                    type={showCurrentPassword ? "text" : "password"}
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder='Enter current password'
-                  />
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='sm'
-                    className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  >
-                    {showCurrentPassword ? (
-                      <EyeOff className='h-4 w-4' />
-                    ) : (
-                      <Eye className='h-4 w-4' />
-                    )}
-                  </Button>
-                </div>
-              </div>
-
               <div className='space-y-2'>
                 <Label htmlFor='newPassword'>New Password</Label>
                 <div className='relative'>
@@ -455,7 +406,6 @@ export default function AccountPage() {
                 <Button
                   variant='outline'
                   onClick={() => {
-                    setCurrentPassword("");
                     setNewPassword("");
                     setConfirmPassword("");
                   }}

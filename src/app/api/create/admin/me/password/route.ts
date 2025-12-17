@@ -1,4 +1,3 @@
-// app/api/account/password/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../../../lib/db";
 import { auth } from "../../../../../../../lib/auth";
@@ -13,26 +12,11 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { currentPassword, newPassword } = body;
-
-    // Validation
-    if (!currentPassword || !newPassword) {
-      return NextResponse.json(
-        { message: "Current password and new password are required" },
-        { status: 400 }
-      );
-    }
+    const { newPassword } = body;
 
     if (newPassword.length < 6) {
       return NextResponse.json(
         { message: "New password must be at least 6 characters" },
-        { status: 400 }
-      );
-    }
-
-    if (currentPassword === newPassword) {
-      return NextResponse.json(
-        { message: "New password must be different from current password" },
         { status: 400 }
       );
     }
@@ -44,16 +28,6 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
-    }
-
-    // Verify current password
-    const isValid = await bcrypt.compare(currentPassword, user.password);
-
-    if (!isValid) {
-      return NextResponse.json(
-        { message: "Current password is incorrect" },
-        { status: 400 }
-      );
     }
 
     // Hash new password
