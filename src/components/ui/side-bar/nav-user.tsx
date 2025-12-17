@@ -84,7 +84,7 @@ export function NavUser({
               <Link href='/adminaccount'>
                 <DropdownMenuItem>
                   <BadgeCheck />
-                  Account
+                  Manage Admins
                 </DropdownMenuItem>
               </Link>
             </DropdownMenuGroup>
@@ -93,16 +93,16 @@ export function NavUser({
               <Link href='/users'>
                 <DropdownMenuItem>
                   <BadgeCheck />
-                  Users
+                  Manage Users
                 </DropdownMenuItem>
               </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <Link href='/adminaccount'>
+              <Link href='/me'>
                 <DropdownMenuItem>
                   <BadgeCheck />
-                  Admin
+                  Account
                 </DropdownMenuItem>
               </Link>
             </DropdownMenuGroup>
